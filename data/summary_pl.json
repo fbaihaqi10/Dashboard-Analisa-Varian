@@ -1,1 +1,40 @@
+{
+  "meta": {
+    "period": "31 Mei 2026",
+    "unit": "US$ Juta",
+    "source": "Sheet 'Summary PL-All', workbook 05_PL Seasonality (RKAP vs Realisasi) - Base Mei-v1.xlsb",
+    "basisLabels": {
+      "a": "RKAP 2026 (Full Year)",
+      "b": "RKAP Proporsional (YTD Mei)",
+      "d": "Prognosa 2026"
+    },
+    "basisCaption": {
+      "a": "Membandingkan <b>Realisasi YTD Mei</b> terhadap <b>target RKAP 2026 penuh setahun</b> — mencerminkan progres pencapaian terhadap target tahunan.",
+      "b": "Membandingkan <b>Realisasi YTD Mei</b> terhadap <b>RKAP proporsional 5 bulan</b> — pembanding paling apple-to-apple secara periode.",
+      "d": "Membandingkan <b>Realisasi YTD Mei</b> terhadap <b>Prognosa 2026</b> — seberapa dekat performa berjalan dengan estimasi terbaru."
+    }
+  },
+  "lines": [
+    {"name": "Pendapatan Usaha", "unit": "currency", "hib": true, "a": 64918.469559049394, "b": 26456.250086024695, "c": 29479.370040575846, "d": 81027.50629040008},
+    {"name": "BPP", "unit": "currency", "hib": true, "a": -61024.15809881514, "b": -24897.82745014281, "c": -26800.093200901683, "d": -76652.76063248998},
+    {"name": "Laba/(Rugi) Kotor", "unit": "currency", "hib": true, "a": 3894.311460234254, "b": 1558.422635881885, "c": 2679.276839674163, "d": 4374.745657910098},
+    {"name": "Beban Usaha & Beban Langsung Lainnya", "unit": "currency", "hib": true, "a": -2888.319670371121, "b": -1177.7061049140664, "c": -1158.5366156657947, "d": -2446.37896955255},
+    {"name": "Laba/(Rugi) Usaha", "unit": "currency", "hib": true, "a": 1005.9917898631329, "b": 380.7165309678187, "c": 1520.7402240083684, "d": 1928.366688357548},
+    {"name": "Pendapatan/(Biaya) Keuangan", "unit": "currency", "hib": true, "a": -520.233975573276, "b": -209.16726923854768, "c": -165.44506364125465, "d": -708.5517666590159},
+    {"name": "Selisih Kurs", "unit": "currency", "hib": true, "a": 0, "b": 0, "c": -315.5200546158653, "d": -385.7991717051862},
+    {"name": "Pendapatan/(Beban) lain", "unit": "currency", "hib": true, "a": 83.57694531084728, "b": 34.09247613269054, "c": -118.81586173543052, "d": -117.06794853164706},
+    {"name": "Laba/(Rugi) Sebelum Pajak", "unit": "currency", "hib": true, "a": 569.3347596007042, "b": 205.64173786196156, "c": 920.959244015818, "d": 716.9478014616989},
+    {"name": "Pajak", "unit": "currency", "hib": true, "a": -124.50571623052006, "b": -45.43108780117214, "c": -230.6616071388258, "d": -223.5748162893444},
+    {"name": "Laba/(Rugi) Bersih", "unit": "currency", "hib": true, "a": 444.8290433701841, "b": 160.21065006078942, "c": 689.8580298869474, "d": 493.37298517235445},
+    {"name": "EBITDA", "unit": "currency", "hib": true, "a": 2345.3852222892874, "b": 920.8887350300174, "c": 1647.086847647279, "d": 2886.1061427160835},
+    {"name": "EBITDA Margin", "unit": "percent", "hib": true, "a": 0.036128165654859455, "b": 0.03480798420167904, "c": 0.05587252527378312, "d": 0.035618844449838656},
+    {"name": "Profit Margin", "unit": "percent", "hib": true, "a": 0.0068521184555278315, "b": 0.0060556824772917996, "c": 0.023401383032860486, "d": 0.006088956797018051},
+    {"name": "BOPO", "unit": "percent", "hib": false, "a": 0.984503766082346, "b": 0.9856095807331013, "c": 0.948413408362689, "d": 0.9762010855739982}
+  ],
+  "chips": [
+    {"name": "Volume Opsen", "unit": "volume", "suffix": " KL", "a": 106032.76625248321, "b": 43521.61079844371, "c": 41261.70901231182, "d": 73511.49042511181},
+    {"name": "Kurs Transaksi", "unit": "rate", "prefix": "Rp ", "a": 16500, "b": 16500, "c": 16932.58, "d": 17070},
+    {"name": "Kurs Neraca", "unit": "rate", "prefix": "Rp ", "a": 16500, "b": 16500, "c": 17378, "d": 17070}
+  ]
+}
 
