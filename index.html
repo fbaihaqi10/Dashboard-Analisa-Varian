@@ -1,1 +1,656 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Summary P&L — RKAP vs Realisasi</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chart.js/4.4.4/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EEF1F5;
+    --surface:#FFFFFF;
+    --ink:#0E1A2B;
+    --muted:#64748B;
+    --border:#DFE4EA;
+    --brand:#0B6E4F;
+    --brand-2:#114B7A;
+    --good:#12805C;
+    --good-bg:#E7F5EF;
+    --bad:#C1392B;
+    --bad-bg:#FBEAE8;
+    --amber:#B4720A;
+    --amber-bg:#FBF1DF;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    padding:28px 32px 60px;
+  }
+  .wrap{max-width:1240px;margin:0 auto;}
+
+  #loadingState{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    height:60vh;
+    font-family:'IBM Plex Mono',monospace;
+    color:var(--muted);
+    font-size:13px;
+  }
+  #errorState{
+    display:none;
+    max-width:640px;
+    margin:60px auto;
+    background:var(--bad-bg);
+    border:1px solid #F0C7C1;
+    color:var(--bad);
+    padding:18px 22px;
+    border-radius:12px;
+    font-size:13.5px;
+    line-height:1.6;
+  }
+  #dashboard{display:none;}
+
+  /* ---------- Header ---------- */
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap:24px;
+    flex-wrap:wrap;
+    margin-bottom:22px;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--brand-2);
+    font-weight:600;
+    margin-bottom:6px;
+  }
+  h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:28px;
+    font-weight:700;
+    margin:0 0 4px 0;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{color:var(--muted);font-size:14px;max-width:560px;line-height:1.5;}
+
+  .toggle-group{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:8px;
+  }
+  .toggle-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:600;}
+  .segmented{
+    position:relative;
+    display:flex;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:999px;
+    padding:4px;
+    gap:2px;
+  }
+  .segmented button{
+    position:relative;
+    z-index:2;
+    border:none;
+    background:transparent;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:13px;
+    padding:8px 16px;
+    border-radius:999px;
+    cursor:pointer;
+    color:var(--muted);
+    transition:color .25s ease;
+    white-space:nowrap;
+  }
+  .segmented button.active{color:#fff;}
+  .segmented .pill{
+    position:absolute;
+    top:4px;bottom:4px;
+    background:var(--brand-2);
+    border-radius:999px;
+    transition:left .3s cubic-bezier(.4,0,.2,1), width .3s cubic-bezier(.4,0,.2,1);
+    z-index:1;
+  }
+
+  .caption-line{
+    font-size:13px;
+    color:var(--brand-2);
+    background:#E9F0F7;
+    border:1px solid #CFE0EE;
+    padding:9px 14px;
+    border-radius:10px;
+    margin-bottom:22px;
+    font-weight:500;
+  }
+  .caption-line b{font-weight:700;}
+
+  /* ---------- KPI Cards ---------- */
+  .kpi-row{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:14px;
+    margin-bottom:26px;
+  }
+  .kpi{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:16px 16px 14px;
+    cursor:pointer;
+    transition:border-color .2s ease, transform .15s ease;
+  }
+  .kpi:hover{border-color:var(--brand-2);transform:translateY(-2px);}
+  .kpi.selected{border-color:var(--brand-2);box-shadow:0 0 0 2px rgba(17,75,122,0.15);}
+  .kpi-name{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:8px;min-height:32px;line-height:1.35;}
+  .kpi-value{font-family:'IBM Plex Mono',monospace;font-size:21px;font-weight:600;letter-spacing:-0.01em;}
+  .kpi-delta{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    font-weight:600;
+    padding:3px 8px;
+    border-radius:6px;
+    margin-top:8px;
+  }
+  .kpi-delta.good{color:var(--good);background:var(--good-bg);}
+  .kpi-delta.bad{color:var(--bad);background:var(--bad-bg);}
+
+  /* ---------- Main grid ---------- */
+  .main-grid{
+    display:grid;
+    grid-template-columns:1.35fr 1fr;
+    gap:16px;
+    align-items:start;
+    margin-bottom:16px;
+  }
+  .panel{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:18px 20px 20px;
+  }
+  .panel-title{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:15px;
+    font-weight:600;
+    margin-bottom:2px;
+  }
+  .panel-sub{font-size:12px;color:var(--muted);margin-bottom:14px;}
+  #chartCanvasWrap{position:relative;height:480px;}
+
+  .legend-row{display:flex;gap:16px;margin-bottom:10px;font-size:12px;color:var(--muted);}
+  .legend-dot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;}
+
+  /* ---------- Table ---------- */
+  .table-tools{display:flex;gap:8px;margin-bottom:12px;}
+  .search-input{
+    flex:1;
+    padding:8px 12px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    background:var(--bg);
+  }
+  .search-input:focus{outline:2px solid var(--brand-2);outline-offset:1px;}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  thead th{
+    text-align:right;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--muted);
+    font-weight:600;
+    padding:6px 4px;
+    border-bottom:1px solid var(--border);
+    cursor:pointer;
+    user-select:none;
+  }
+  thead th:first-child, tbody td:first-child{text-align:left;}
+  thead th:hover{color:var(--brand-2);}
+  .sort-arrow{font-size:9px;margin-left:2px;opacity:.6;}
+  tbody td{
+    padding:8px 4px;
+    border-bottom:1px solid #EEF0F3;
+    font-family:'IBM Plex Mono',monospace;
+    text-align:right;
+    white-space:nowrap;
+  }
+  tbody td:first-child{
+    font-family:'Inter',sans-serif;
+    white-space:normal;
+    max-width:170px;
+    font-weight:500;
+  }
+  tbody tr{cursor:pointer;transition:background .15s ease;}
+  tbody tr:hover{background:#F5F8FB;}
+  tbody tr.selected{background:#E9F0F7;}
+  tbody tr.selected td:first-child{color:var(--brand-2);font-weight:700;}
+  .var-good{color:var(--good);font-weight:600;}
+  .var-bad{color:var(--bad);font-weight:600;}
+
+  /* ---------- chips ---------- */
+  .chip-row{display:flex;gap:12px;flex-wrap:wrap;}
+  .chip{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:12px 18px;
+    flex:1;
+    min-width:200px;
+  }
+  .chip-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:6px;}
+  .chip-values{display:flex;justify-content:space-between;align-items:baseline;}
+  .chip-real{font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:600;}
+  .chip-basis{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
+
+  .insight{
+    margin-top:16px;
+    font-size:13px;
+    background:var(--amber-bg);
+    border:1px solid #F0DDB0;
+    color:#7A5205;
+    padding:10px 14px;
+    border-radius:10px;
+  }
+  .insight b{font-weight:700;}
+
+  footer{
+    margin-top:26px;
+    font-size:11.5px;
+    color:var(--muted);
+    line-height:1.6;
+    border-top:1px solid var(--border);
+    padding-top:14px;
+  }
+  .export-btn{
+    font-family:'Inter',sans-serif;
+    font-size:12px;
+    font-weight:600;
+    color:var(--brand-2);
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:7px 12px;
+    cursor:pointer;
+  }
+  .export-btn:hover{border-color:var(--brand-2);}
+
+  @media (max-width:920px){
+    .kpi-row{grid-template-columns:repeat(2,1fr);}
+    .main-grid{grid-template-columns:1fr;}
+    header{align-items:flex-start;}
+    .toggle-group{align-items:flex-start;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="loadingState">Memuat data dari data/summary_pl.json …</div>
+  <div id="errorState">
+    <b>Gagal memuat data.json.</b><br>
+    Ini normal kalau file dibuka langsung dari komputer (file://) — browser memblokir fetch file lokal karena alasan keamanan (CORS).
+    Buka dashboard ini lewat GitHub Pages (atau server lokal apa saja), bukan dengan dobel-klik file-nya. Lihat README.md untuk langkah setup GitHub Pages.
+  </div>
+
+  <div id="dashboard">
+    <header>
+      <div>
+        <div class="eyebrow">SH Downstream · Statement of Comprehensive Income</div>
+        <h1>Summary P&amp;L — RKAP vs Realisasi</h1>
+        <div class="subtitle" id="subtitleText">Klik bar, baris tabel, atau kartu KPI untuk saling menyorot (cross-filter) — pilih basis pembanding di kanan.</div>
+      </div>
+      <div class="toggle-group">
+        <div class="toggle-label">Bandingkan Realisasi terhadap</div>
+        <div class="segmented" id="segmented">
+          <div class="pill" id="pill"></div>
+          <button data-basis="a">RKAP 2026 (Full Year)</button>
+          <button data-basis="b">RKAP Proporsional (YTD Mei)</button>
+          <button data-basis="d">Prognosa 2026</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="caption-line" id="captionLine"></div>
+
+    <div class="kpi-row" id="kpiRow"></div>
+
+    <div class="main-grid">
+      <div class="panel">
+        <div class="panel-title">Realisasi vs Basis Terpilih, per Komponen P&amp;L</div>
+        <div class="panel-sub" id="unitLabel">klik bar untuk menyorot baris di tabel</div>
+        <div class="legend-row">
+          <span><span class="legend-dot" style="background:#B7C4D6"></span>Basis pembanding</span>
+          <span><span class="legend-dot" style="background:#0B6E4F"></span>Realisasi (favorable)</span>
+          <span><span class="legend-dot" style="background:#C1392B"></span>Realisasi (unfavorable)</span>
+        </div>
+        <div id="chartCanvasWrap"><canvas id="plChart"></canvas></div>
+        <div class="insight" id="insightBox"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Rincian Komponen</div>
+        <div class="panel-sub">Klik header kolom untuk urutkan · klik baris untuk menyorot bar</div>
+        <div class="table-tools">
+          <input class="search-input" id="searchInput" placeholder="Cari komponen P&L…">
+          <button class="export-btn" id="exportBtn">Unduh CSV</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th data-key="name">Komponen</th>
+              <th data-key="c">Realisasi<span class="sort-arrow"></span></th>
+              <th data-key="basis">Basis<span class="sort-arrow"></span></th>
+              <th data-key="variance">Var %<span class="sort-arrow"></span></th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="chip-row" id="chipRow"></div>
+
+    <footer id="footerText"></footer>
+  </div>
+</div>
+
+<script>
+// ---------------- State & data (loaded from data/summary_pl.json) ----------------
+let plData = [];
+let chipData = [];
+let META = {};
+let basisLabel = {};
+let basisCaption = {};
+
+let state = {basis:'b', sortKey:'variance', sortDir:'desc', search:'', selected:null};
+
+async function loadData(){
+  try{
+    const res = await fetch('data/summary_pl.json');
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const json = await res.json();
+    META = json.meta;
+    plData = json.lines;
+    chipData = json.chips;
+    basisLabel = json.meta.basisLabels;
+    basisCaption = json.meta.basisCaption;
+
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('subtitleText').textContent =
+      `Data per ${META.period}, dalam ${META.unit}. Klik bar, baris tabel, atau kartu KPI untuk saling menyorot — pilih basis pembanding di kanan.`;
+    document.getElementById('unitLabel').textContent = `${META.unit} · klik bar untuk menyorot baris di tabel`;
+    document.getElementById('footerText').innerHTML =
+      `Sumber: ${META.source}. Kolom a = RKAP 2026 (Full Year), b = RKAP 2026 Proporsional YTD Mei, c = Realisasi YTD Mei, d = Prognosa 2026. Untuk mengupdate data, edit langsung file <code>data/summary_pl.json</code> di GitHub (tanpa perlu install apa pun).`;
+
+    initDashboard();
+  }catch(err){
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('errorState').style.display = 'block';
+    console.error(err);
+  }
+}
+
+function fmtCurrency(v){
+  const abs = Math.abs(v);
+  const s = abs.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1});
+  return v<0 ? '('+s+')' : s;
+}
+function fmtPercent(v){ return (v*100).toFixed(1)+'%'; }
+function fmtValue(row,key){
+  const v = row[key];
+  return row.unit==='percent' ? fmtPercent(v) : fmtCurrency(v);
+}
+function variance(row){
+  const basisVal = row[state.basis];
+  if(basisVal===0) return null;
+  return (row.c-basisVal)/Math.abs(basisVal)*100;
+}
+function isGood(row,v){
+  if(v===null) return true;
+  return row.hib ? v>=0 : v<=0;
+}
+
+// ---------------- Segmented control ----------------
+function positionPill(){
+  const segmented = document.getElementById('segmented');
+  const pill = document.getElementById('pill');
+  const active = segmented.querySelector('button.active');
+  if(!active) return;
+  pill.style.left = active.offsetLeft+'px';
+  pill.style.width = active.offsetWidth+'px';
+}
+
+// ---------------- KPI cards ----------------
+const kpiNames = ['Pendapatan Usaha','Laba/(Rugi) Usaha','Laba/(Rugi) Bersih','EBITDA','EBITDA Margin'];
+function renderKPI(){
+  const row = document.getElementById('kpiRow');
+  row.innerHTML='';
+  kpiNames.forEach(n=>{
+    const d = plData.find(r=>r.name===n);
+    if(!d) return;
+    const v = variance(d);
+    const good = isGood(d,v);
+    const el = document.createElement('div');
+    el.className='kpi'+(state.selected===d.name?' selected':'');
+    el.innerHTML = `
+      <div class="kpi-name">${d.name}</div>
+      <div class="kpi-value">${fmtValue(d,'c')}${d.unit==='currency'?' <span style="font-size:11px;color:var(--muted);font-weight:500;">Jt</span>':''}</div>
+      <div class="kpi-delta ${good?'good':'bad'}">${v===null?'—':(v>=0?'▲ ':'▼ ')+Math.abs(v).toFixed(1)+'%'} vs ${basisLabel[state.basis]}</div>
+    `;
+    el.addEventListener('click',()=>{ toggleSelect(d.name); });
+    row.appendChild(el);
+  });
+}
+
+// ---------------- Caption ----------------
+function renderCaption(){
+  document.getElementById('captionLine').innerHTML = basisCaption[state.basis];
+}
+
+// ---------------- Chart ----------------
+let chart;
+function chartRows(){
+  return plData.filter(r=>r.unit==='currency');
+}
+function buildChart(){
+  const ctx = document.getElementById('plChart').getContext('2d');
+  const rows = chartRows();
+  chart = new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels: rows.map(r=>r.name),
+      datasets:[
+        {
+          label:'Basis',
+          data: rows.map(r=>r[state.basis]),
+          backgroundColor:'#B7C4D6',
+          borderRadius:4,
+          barThickness:9,
+        },
+        {
+          label:'Realisasi',
+          data: rows.map(r=>r.c),
+          backgroundColor: rows.map(r=> isGood(r,variance(r)) ? '#0B6E4F' : '#C1392B'),
+          borderRadius:4,
+          barThickness:9,
+        }
+      ]
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true,
+      maintainAspectRatio:false,
+      onClick:(evt,elements)=>{
+        if(elements.length){
+          const idx = elements[0].index;
+          toggleSelect(rows[idx].name);
+        }
+      },
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            label:(ctx)=> ctx.dataset.label+': '+fmtCurrency(ctx.parsed.x)+' Jt US$'
+          }
+        }
+      },
+      scales:{
+        x:{grid:{color:'#EDEFF3'}, ticks:{font:{family:'IBM Plex Mono',size:10.5}}},
+        y:{grid:{display:false}, ticks:{font:{family:'Inter',size:11}}}
+      }
+    }
+  });
+}
+function updateChart(){
+  const rows = chartRows();
+  chart.data.datasets[0].data = rows.map(r=>r[state.basis]);
+  chart.data.datasets[1].backgroundColor = rows.map(r=> isGood(r,variance(r)) ? '#0B6E4F' : '#C1392B');
+  chart.update();
+}
+
+// ---------------- Table ----------------
+function renderTable(){
+  const tbody = document.getElementById('tableBody');
+  let rows = plData.filter(r=> r.name.toLowerCase().includes(state.search.toLowerCase()));
+  rows = rows.map(r=>({...r, varianceVal:variance(r)}));
+  rows.sort((x,y)=>{
+    let vx, vy;
+    if(state.sortKey==='name'){ vx=x.name; vy=y.name; }
+    else if(state.sortKey==='basis'){ vx=x[state.basis]; vy=y[state.basis]; }
+    else if(state.sortKey==='variance'){ vx=x.varianceVal??-Infinity; vy=y.varianceVal??-Infinity; }
+    else { vx=x[state.sortKey]; vy=y[state.sortKey]; }
+    if(typeof vx==='string') return state.sortDir==='asc' ? vx.localeCompare(vy) : vy.localeCompare(vx);
+    return state.sortDir==='asc' ? vx-vy : vy-vx;
+  });
+  tbody.innerHTML = rows.map(r=>{
+    const v = r.varianceVal;
+    const good = isGood(r,v);
+    return `<tr class="${r.name===state.selected?'selected':''}" data-name="${r.name}">
+      <td>${r.name}</td>
+      <td>${fmtValue(r,'c')}</td>
+      <td>${fmtValue(r,state.basis)}</td>
+      <td class="${v===null?'':(good?'var-good':'var-bad')}">${v===null?'—':(v>=0?'+':'')+v.toFixed(1)+'%'}</td>
+    </tr>`;
+  }).join('');
+  tbody.querySelectorAll('tr').forEach(tr=>{
+    tr.addEventListener('click',()=> toggleSelect(tr.dataset.name));
+  });
+  document.querySelectorAll('thead th').forEach(th=>{
+    const arrow = th.querySelector('.sort-arrow');
+    if(!arrow) return;
+    arrow.textContent = th.dataset.key===state.sortKey ? (state.sortDir==='asc'?'▲':'▼') : '';
+  });
+}
+
+// ---------------- Chips ----------------
+function renderChips(){
+  const row = document.getElementById('chipRow');
+  row.innerHTML = chipData.map(c=>{
+    const basisVal = c[state.basis];
+    const fmt = (v)=> (c.prefix||'')+v.toLocaleString('en-US',{maximumFractionDigits:2})+(c.suffix||'');
+    return `<div class="chip">
+      <div class="chip-label">${c.name}</div>
+      <div class="chip-values">
+        <span class="chip-real">${fmt(c.c)}</span>
+        <span class="chip-basis">vs ${fmt(basisVal)} (${basisLabel[state.basis]})</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ---------------- Insight ----------------
+function renderInsight(){
+  const rows = chartRows().map(r=>({...r, v:variance(r)})).filter(r=>r.v!==null);
+  if(!rows.length){ document.getElementById('insightBox').innerHTML=''; return; }
+  const worst = rows.reduce((a,b)=> (isGood(b,b.v)?-Infinity:Math.abs(b.v)) > (isGood(a,a.v)?-Infinity:Math.abs(a.v)) ? b : a);
+  const best = rows.reduce((a,b)=> (isGood(b,b.v)?Math.abs(b.v):-Infinity) > (isGood(a,a.v)?Math.abs(a.v):-Infinity) ? b : a);
+  document.getElementById('insightBox').innerHTML =
+    `<b>Sorotan:</b> ${best.name} paling favorable (${best.v>=0?'+':''}${best.v.toFixed(1)}%) sementara ${worst.name} paling perlu diperhatikan (${worst.v>=0?'+':''}${worst.v.toFixed(1)}%) terhadap ${basisLabel[state.basis]}.`;
+}
+
+// ---------------- Selection / cross-filter ----------------
+function toggleSelect(name){
+  state.selected = state.selected===name ? null : name;
+  renderKPI();
+  renderTable();
+}
+
+// ---------------- CSV export ----------------
+function exportCSV(){
+  const header = ['Komponen','Realisasi (c)', basisLabel[state.basis], 'Variance %'];
+  const lines = [header.join(',')];
+  plData.forEach(r=>{
+    const v = variance(r);
+    lines.push([r.name, r.unit==='percent'?(r.c*100).toFixed(2)+'%':r.c.toFixed(2), r.unit==='percent'?(r[state.basis]*100).toFixed(2)+'%':r[state.basis].toFixed(2), v===null?'':v.toFixed(2)+'%'].map(x=>`"${x}"`).join(','));
+  });
+  const blob = new Blob([lines.join('\n')], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'summary_pl_rkap_vs_realisasi.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ---------------- Init ----------------
+function renderAll(){
+  renderCaption();
+  renderKPI();
+  updateChart();
+  renderTable();
+  renderChips();
+  renderInsight();
+}
+
+function initDashboard(){
+  const segmented = document.getElementById('segmented');
+  segmented.querySelectorAll('button').forEach(btn=>{
+    if(btn.dataset.basis===state.basis) btn.classList.add('active');
+    btn.addEventListener('click',()=>{
+      segmented.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      state.basis = btn.dataset.basis;
+      positionPill();
+      renderAll();
+    });
+  });
+  window.addEventListener('resize', positionPill);
+  document.querySelectorAll('thead th').forEach(th=>{
+    th.addEventListener('click',()=>{
+      const key = th.dataset.key;
+      if(state.sortKey===key) state.sortDir = state.sortDir==='asc'?'desc':'asc';
+      else { state.sortKey=key; state.sortDir = key==='name'?'asc':'desc'; }
+      renderTable();
+    });
+  });
+  document.getElementById('searchInput').addEventListener('input',(e)=>{
+    state.search = e.target.value;
+    renderTable();
+  });
+  document.getElementById('exportBtn').addEventListener('click', exportCSV);
+
+  buildChart();
+  renderAll();
+  positionPill();
+}
+
+loadData();
+</script>
+</body>
+</html>
 
