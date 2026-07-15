@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>P&L Dashboard — RKAP vs Realisasi</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,30 +13,21 @@
     --brand:#0B6E4F; --brand-2:#114B7A; --good:#12805C; --good-bg:#E7F5EF;
     --bad:#C1392B; --bad-bg:#FBEAE8; --amber:#B4720A; --amber-bg:#FBF1DF;
     --sidebar-bg:#0E1A2B; --sidebar-ink:#C9D4E0; --sidebar-active:#16324F;
-    --radius:14px;
+    --radius:14px; --sidebar-w:236px; --topbar-h:56px;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;height:100%;}
-  body{
-    background:var(--bg); color:var(--ink); font-family:'Inter',sans-serif;
-    display:flex; min-height:100vh;
-  }
+  body{background:var(--bg); color:var(--ink); font-family:'Inter',sans-serif;}
 
   /* ---------- Sidebar ---------- */
   #sidebar{
-    width:236px; flex-shrink:0; background:var(--sidebar-bg); color:var(--sidebar-ink);
-    padding:22px 14px; position:sticky; top:0; height:100vh; overflow-y:auto;
+    width:var(--sidebar-w); flex-shrink:0; background:var(--sidebar-bg); color:var(--sidebar-ink);
+    padding:22px 14px; position:fixed; top:0; left:0; height:100vh; overflow-y:auto; z-index:40;
+    transition:transform .25s ease;
   }
-  .sb-title{
-    font-family:'Space Grotesk',sans-serif; color:#fff; font-size:15px; font-weight:700;
-    padding:0 10px 4px; letter-spacing:-0.01em;
-  }
+  .sb-title{font-family:'Space Grotesk',sans-serif; color:#fff; font-size:15px; font-weight:700; padding:0 10px 4px; letter-spacing:-0.01em;}
   .sb-sub{font-size:10.5px; color:#7C8CA3; padding:0 10px 20px; text-transform:uppercase; letter-spacing:.08em; font-weight:600;}
-  .sb-item{
-    display:flex; align-items:center; gap:10px;
-    padding:10px 12px; border-radius:9px; cursor:pointer; font-size:13.5px; font-weight:500;
-    color:var(--sidebar-ink); margin-bottom:3px; transition:background .15s ease, color .15s ease;
-  }
+  .sb-item{display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:9px; cursor:pointer; font-size:13.5px; font-weight:500; color:var(--sidebar-ink); margin-bottom:3px; transition:background .15s ease, color .15s ease;}
   .sb-item:hover{background:#132840; color:#fff;}
   .sb-item.active{background:var(--sidebar-active); color:#fff; font-weight:600;}
   .sb-item .icon{width:17px;height:17px;flex-shrink:0;opacity:.75;}
@@ -44,10 +35,31 @@
   .sb-item .icon svg{width:100%;height:100%;}
   .sb-item .badge{margin-left:auto;width:6px;height:6px;border-radius:50%;background:transparent;flex-shrink:0;}
   .sb-item.active .badge{background:#3DDC97;}
-  .sb-foot{margin-top:22px; padding:12px 12px 0; border-top:1px solid #1E3350; font-size:11px; color:#5E7089; line-height:1.6;}
+  .sb-divider{height:1px;background:#1E3350;margin:10px 4px;}
+  .sb-foot{margin-top:14px; padding:12px 12px 0; border-top:1px solid #1E3350; font-size:11px; color:#5E7089; line-height:1.6;}
+  #sidebar-overlay{display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:35;}
+
+  /* ---------- Topbar (sticky, holds mobile menu + period switcher) ---------- */
+  #topbar{
+    position:sticky; top:0; z-index:20; height:var(--topbar-h);
+    background:rgba(238,241,245,.92); backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 18px; gap:12px;
+  }
+  #menuToggle{
+    display:none; width:36px; height:36px; border-radius:8px; border:1px solid var(--border);
+    background:var(--surface); align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;
+  }
+  #menuToggle svg{width:18px;height:18px;}
+  #topbar-title{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:14px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  #period-select-wrap{display:flex; align-items:center; gap:8px; flex-shrink:0;}
+  #period-select-wrap label{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; font-weight:600; white-space:nowrap;}
+  #periodSelect{padding:7px 10px; border:1px solid var(--border); border-radius:8px; background:var(--surface); font-family:'Inter'; font-size:12.5px; font-weight:600; color:var(--brand-2); cursor:pointer;}
 
   /* ---------- Main ---------- */
-  #main{flex:1; min-width:0; padding:28px 34px 60px;}
+  #app{display:flex;}
+  #main{flex:1; min-width:0; margin-left:var(--sidebar-w); padding:24px 30px 60px;}
   .page{display:none; max-width:1240px; margin:0 auto;}
   .page.active{display:block;}
 
@@ -55,20 +67,17 @@
   h1{font-family:'Space Grotesk',sans-serif; font-size:26px; font-weight:700; margin:0 0 4px 0; letter-spacing:-0.01em; display:flex; align-items:center; gap:10px;}
   .h1-icon{width:26px;height:26px;flex-shrink:0;color:var(--brand-2);}
   .h1-icon svg{width:100%;height:100%;}
-  .subtitle{color:var(--muted); font-size:14px; max-width:620px; line-height:1.5;}
+  .subtitle{color:var(--muted); font-size:14px; max-width:640px; line-height:1.5;}
   header.pagehead{display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap; margin-bottom:20px;}
 
   .toggle-group{display:flex; flex-direction:column; align-items:flex-end; gap:8px;}
   .toggle-label{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; font-weight:600;}
-  .segmented{position:relative; display:flex; background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:4px; gap:2px;}
+  .segmented{position:relative; display:flex; background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:4px; gap:2px; flex-wrap:wrap;}
   .segmented button{position:relative; z-index:2; border:none; background:transparent; font-family:'Inter'; font-weight:600; font-size:12.5px; padding:8px 14px; border-radius:999px; cursor:pointer; color:var(--muted); transition:color .25s ease; white-space:nowrap;}
   .segmented button.active{color:#fff;}
   .segmented .pill{position:absolute; top:4px; bottom:4px; background:var(--brand-2); border-radius:999px; transition:left .3s cubic-bezier(.4,0,.2,1), width .3s cubic-bezier(.4,0,.2,1); z-index:1;}
 
-  select.dropdown{
-    padding:8px 12px; border:1px solid var(--border); border-radius:8px; background:var(--surface);
-    font-family:'Inter'; font-size:13px; font-weight:600; color:var(--ink); cursor:pointer;
-  }
+  select.dropdown{padding:8px 12px; border:1px solid var(--border); border-radius:8px; background:var(--surface); font-family:'Inter'; font-size:13px; font-weight:600; color:var(--ink); cursor:pointer;}
 
   .caption-line{font-size:13px; color:var(--brand-2); background:#E9F0F7; border:1px solid #CFE0EE; padding:9px 14px; border-radius:10px; margin-bottom:20px; font-weight:500;}
   .caption-line b{font-weight:700;}
@@ -96,6 +105,7 @@
   .table-tools{display:flex; gap:8px; margin-bottom:12px;}
   .search-input{flex:1; padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-family:'Inter'; font-size:13px; background:var(--bg);}
   .search-input:focus{outline:2px solid var(--brand-2); outline-offset:1px;}
+  .table-scroll{overflow-x:auto; -webkit-overflow-scrolling:touch;}
   table{width:100%; border-collapse:collapse; font-size:12.5px;}
   thead th{text-align:right; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:600; padding:6px 4px; border-bottom:1px solid var(--border); cursor:pointer; user-select:none; white-space:nowrap;}
   thead th:first-child, tbody td:first-child{text-align:left;}
@@ -113,7 +123,7 @@
   .chip-row{display:flex; gap:12px; flex-wrap:wrap;}
   .chip{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px 18px; flex:1; min-width:200px;}
   .chip-label{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; font-weight:600; margin-bottom:6px;}
-  .chip-values{display:flex; justify-content:space-between; align-items:baseline;}
+  .chip-values{display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:4px;}
   .chip-real{font-family:'IBM Plex Mono',monospace; font-size:17px; font-weight:600;}
   .chip-basis{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--muted);}
 
@@ -125,17 +135,54 @@
   .loading{display:flex; align-items:center; justify-content:center; height:60vh; font-family:'IBM Plex Mono',monospace; color:var(--muted); font-size:13px;}
   .error-box{max-width:640px; margin:60px auto; background:var(--bad-bg); border:1px solid #F0C7C1; color:var(--bad); padding:18px 22px; border-radius:12px; font-size:13.5px; line-height:1.6;}
 
-  @media (max-width:1000px){
-    body{flex-direction:column;}
-    #sidebar{width:100%; height:auto; position:relative; display:flex; flex-wrap:wrap; gap:4px;}
-    .sb-foot{display:none;}
+  /* ---------- Update Data guide page ---------- */
+  .guide-step{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px; margin-bottom:14px;}
+  .guide-step h3{font-family:'Space Grotesk',sans-serif; font-size:14.5px; margin:0 0 8px; display:flex; align-items:center; gap:8px;}
+  .guide-step-num{display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; background:var(--brand-2); color:#fff; font-size:11px; font-weight:700; flex-shrink:0;}
+  .guide-step p{font-size:13px; color:var(--ink); line-height:1.6; margin:6px 0;}
+  .guide-step code{background:var(--bg); padding:2px 6px; border-radius:5px; font-family:'IBM Plex Mono',monospace; font-size:12px;}
+  .guide-step pre{background:var(--bg); border-radius:8px; padding:12px 14px; font-family:'IBM Plex Mono',monospace; font-size:11.5px; overflow-x:auto; line-height:1.7;}
+
+  /* ============================================================
+     RESPONSIVE — mobile portrait & landscape
+  ============================================================ */
+  @media (max-width:980px){
+    :root{--sidebar-w:250px;}
+    #menuToggle{display:flex;}
+    #sidebar{transform:translateX(-100%);}
+    #sidebar.open{transform:translateX(0);}
+    #sidebar-overlay.open{display:block;}
+    #main{margin-left:0;}
+    #topbar-title{display:none;}
     .kpi-row{grid-template-columns:repeat(2,1fr);}
     .main-grid{grid-template-columns:1fr;}
+    #main{padding:18px 16px 50px;}
+    h1{font-size:21px;}
+    .h1-icon{width:21px;height:21px;}
+    .chart-wrap{height:320px;}
+    .toggle-group{align-items:stretch; width:100%;}
+    header.pagehead{flex-direction:column; align-items:stretch;}
+    .segmented{width:100%;}
+    .segmented button{flex:1; text-align:center;}
+  }
+  /* short/landscape phones: shrink vertical chrome so charts stay visible */
+  @media (max-width:980px) and (orientation:landscape){
+    :root{--topbar-h:48px;}
+    .chart-wrap{height:240px;}
+    .kpi-row{grid-template-columns:repeat(5,1fr);}
+    .kpi-value{font-size:16px;}
+    .kpi-name{min-height:auto; margin-bottom:4px;}
+    #main{padding:14px 18px 40px;}
+  }
+  @media (max-width:480px){
+    .kpi-row{grid-template-columns:repeat(2,1fr);}
+    table{font-size:11px;}
   }
 </style>
 </head>
 <body>
 
+<div id="sidebar-overlay"></div>
 <nav id="sidebar">
   <div class="sb-title">P&amp;L Dashboard</div>
   <div class="sb-sub">SH Downstream · RKAP vs Realisasi</div>
@@ -159,214 +206,283 @@
     <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 6h7v7"/></svg></span>
     Variance Analysis<span class="badge"></span>
   </div>
-  <div class="sb-foot">Data per 31 Mei 2026<br>Sumber: workbook internal SHD</div>
+  <div class="sb-divider"></div>
+  <div class="sb-item" data-page="update">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span>
+    Update Data<span class="badge"></span>
+  </div>
+  <div class="sb-foot" id="sb-period-note">Data per 31 Mei 2026<br>Sumber: workbook internal SHD</div>
 </nav>
 
-<main id="main">
-  <div id="loadingState" class="loading">Memuat data …</div>
-  <div id="errorState" class="error-box" style="display:none;"></div>
+<div id="app">
+  <div style="flex:1;min-width:0;">
+    <div id="topbar">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+        <button id="menuToggle" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <div id="topbar-title">P&amp;L Dashboard</div>
+      </div>
+      <div id="period-select-wrap">
+        <label>Periode</label>
+        <select id="periodSelect"></select>
+      </div>
+    </div>
 
-  <!-- ============ PAGE 1: SUMMARY P&L ============ -->
-  <section class="page active" id="page-summary">
-    <header class="pagehead">
-      <div>
-        <div class="eyebrow">SH Downstream · Statement of Comprehensive Income</div>
-        <h1><span class="h1-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span>Summary P&amp;L — RKAP vs Realisasi</h1>
-        <div class="subtitle" id="sum-subtitle">Klik bar, baris tabel, atau kartu KPI untuk saling menyorot.</div>
-      </div>
-      <div class="toggle-group">
-        <div class="toggle-label">Bandingkan Realisasi terhadap</div>
-        <div class="segmented" id="sum-segmented">
-          <div class="pill" id="sum-pill"></div>
-          <button data-basis="a">RKAP 2026 (Full Year)</button>
-          <button data-basis="b">RKAP Proporsional (YTD Mei)</button>
-          <button data-basis="d">Prognosa 2026</button>
-        </div>
-      </div>
-    </header>
-    <div class="caption-line" id="sum-caption"></div>
-    <div class="kpi-row" id="sum-kpi"></div>
-    <div class="main-grid">
-      <div class="panel">
-        <div class="panel-title">Realisasi vs Basis Terpilih, per Komponen P&amp;L</div>
-        <div class="panel-sub" id="sum-unitlabel">klik bar untuk menyorot baris di tabel</div>
-        <div class="legend-row">
-          <span><span class="legend-dot" style="background:#B7C4D6"></span>Basis pembanding</span>
-          <span><span class="legend-dot" style="background:#0B6E4F"></span>Realisasi (favorable)</span>
-          <span><span class="legend-dot" style="background:#C1392B"></span>Realisasi (unfavorable)</span>
-        </div>
-        <div class="chart-wrap"><canvas id="sum-chart"></canvas></div>
-        <div class="insight" id="sum-insight"></div>
-      </div>
-      <div class="panel">
-        <div class="panel-title">Rincian Komponen</div>
-        <div class="panel-sub">Klik header kolom untuk urutkan · klik baris untuk menyorot bar</div>
-        <div class="table-tools">
-          <input class="search-input" id="sum-search" placeholder="Cari komponen P&L…">
-          <button class="export-btn" id="sum-export" style="font-family:'Inter';font-size:12px;font-weight:600;color:var(--brand-2);background:#fff;border:1px solid var(--border);border-radius:8px;padding:7px 12px;cursor:pointer;">Unduh CSV</button>
-        </div>
-        <table>
-          <thead><tr>
-            <th data-key="name">Komponen</th>
-            <th data-key="c">Realisasi<span class="sort-arrow"></span></th>
-            <th data-key="basis">Basis<span class="sort-arrow"></span></th>
-            <th data-key="variance">Var %<span class="sort-arrow"></span></th>
-          </tr></thead>
-          <tbody id="sum-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-    <div class="chip-row" id="sum-chips"></div>
-    <footer class="page-footer" id="sum-footer"></footer>
-  </section>
+    <main id="main">
+      <div id="loadingState" class="loading">Memuat data …</div>
+      <div id="errorState" class="error-box" style="display:none;"></div>
+      <div id="pages" style="display:none;">
 
-  <!-- ============ PAGE 2: SEASONALITY BULANAN ============ -->
-  <section class="page" id="page-seasonality">
-    <header class="pagehead">
-      <div>
-        <div class="eyebrow">RKAP 2026 · Pola Bulanan</div>
-        <h1><span class="h1-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M7 15l2 2 4-4"/></svg></span>Seasonality Bulanan (Jan–Des)</h1>
-        <div class="subtitle">Pola bulanan RKAP 2026 untuk segmen <b>OPSEN</b> (segmen komersial inti Pertamina Patra Niaga, ±94% dari total pendapatan konsolidasian).</div>
-      </div>
-      <div class="toggle-group">
-        <div class="toggle-label">Komponen P&amp;L</div>
-        <select class="dropdown" id="seas-select"></select>
-      </div>
-    </header>
-    <div class="main-grid" style="grid-template-columns:1fr;">
-      <div class="panel">
-        <div class="panel-title" id="seas-title">Pendapatan Usaha — Pola Bulanan RKAP 2026</div>
-        <div class="panel-sub">US$ Juta · OPSEN · titik merah menandai posisi Mei</div>
-        <div class="chart-wrap"><canvas id="seas-chart"></canvas></div>
-      </div>
-    </div>
-    <div class="panel" style="margin-top:16px;">
-      <div class="panel-title">Rincian per Bulan</div>
-      <table>
-        <thead><tr id="seas-thead-row"></tr></thead>
-        <tbody id="seas-tbody"></tbody>
-      </table>
-    </div>
-    <footer class="page-footer">Sumber: sheet <i>Seasonality PL-All</i> (blok segmen OPSEN, kolom Jan–Des). Subsidiari (PPT, PIMD, dll.) memiliki pola musiman masing-masing yang tidak dikonsolidasikan bulanan di sheet ini — lihat halaman "Per Unit Bisnis" untuk pembanding RKAP vs Realisasi per entitas.</footer>
-  </section>
-
-  <!-- ============ PAGE 3: PER UNIT BISNIS ============ -->
-  <section class="page" id="page-unitbisnis">
-    <header class="pagehead">
-      <div>
-        <div class="eyebrow">RKAP Proporsional YTD Mei vs Realisasi YTD Mei</div>
-        <h1><span class="h1-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 9h1M9 13h1M14 9h1M14 13h1M9 21v-4h6v4"/></svg></span>Perbandingan per Unit Bisnis</h1>
-        <div class="subtitle">Klik bar atau baris tabel untuk menyorot unit bisnis tertentu.</div>
-      </div>
-      <div class="toggle-group">
-        <div class="toggle-label">Metrik</div>
-        <select class="dropdown" id="ub-select"></select>
-      </div>
-    </header>
-    <div class="main-grid">
-      <div class="panel">
-        <div class="panel-title" id="ub-title">Pendapatan Usaha per Unit Bisnis</div>
-        <div class="panel-sub">US$ Juta · klik bar untuk menyorot baris di tabel</div>
-        <div class="legend-row">
-          <span><span class="legend-dot" style="background:#B7C4D6"></span>RKAP Proporsional</span>
-          <span><span class="legend-dot" style="background:#114B7A"></span>Realisasi</span>
+      <!-- ============ PAGE 1: SUMMARY P&L ============ -->
+      <section class="page active" id="page-summary">
+        <header class="pagehead">
+          <div>
+            <div class="eyebrow">SH Downstream · Statement of Comprehensive Income</div>
+            <h1><span class="h1-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span>Summary P&amp;L — RKAP vs Realisasi</h1>
+            <div class="subtitle" id="sum-subtitle">Klik bar, baris tabel, atau kartu KPI untuk saling menyorot.</div>
+          </div>
+          <div class="toggle-group">
+            <div class="toggle-label">Bandingkan Realisasi terhadap</div>
+            <div class="segmented" id="sum-segmented">
+              <div class="pill" id="sum-pill"></div>
+              <button data-basis="a">RKAP 2026 (Full Year)</button>
+              <button data-basis="b">RKAP Proporsional</button>
+              <button data-basis="d">Prognosa 2026</button>
+            </div>
+          </div>
+        </header>
+        <div class="caption-line" id="sum-caption"></div>
+        <div class="kpi-row" id="sum-kpi"></div>
+        <div class="main-grid">
+          <div class="panel">
+            <div class="panel-title">Realisasi vs Basis Terpilih, per Komponen P&amp;L</div>
+            <div class="panel-sub" id="sum-unitlabel">klik bar untuk menyorot baris di tabel</div>
+            <div class="legend-row">
+              <span><span class="legend-dot" style="background:#B7C4D6"></span>Basis pembanding</span>
+              <span><span class="legend-dot" style="background:#0B6E4F"></span>Realisasi (favorable)</span>
+              <span><span class="legend-dot" style="background:#C1392B"></span>Realisasi (unfavorable)</span>
+            </div>
+            <div class="chart-wrap"><canvas id="sum-chart"></canvas></div>
+            <div class="insight" id="sum-insight"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Rincian Komponen</div>
+            <div class="panel-sub">Klik header kolom untuk urutkan · klik baris untuk menyorot bar</div>
+            <div class="table-tools">
+              <input class="search-input" id="sum-search" placeholder="Cari komponen P&L…">
+              <button class="export-btn" id="sum-export" style="font-family:'Inter';font-size:12px;font-weight:600;color:var(--brand-2);background:#fff;border:1px solid var(--border);border-radius:8px;padding:7px 12px;cursor:pointer;">Unduh CSV</button>
+            </div>
+            <div class="table-scroll"><table>
+              <thead><tr>
+                <th data-key="name">Komponen</th>
+                <th data-key="c">Realisasi<span class="sort-arrow"></span></th>
+                <th data-key="basis">Basis<span class="sort-arrow"></span></th>
+                <th data-key="variance">Var %<span class="sort-arrow"></span></th>
+              </tr></thead>
+              <tbody id="sum-tbody"></tbody>
+            </table></div>
+          </div>
         </div>
-        <div class="chart-wrap"><canvas id="ub-chart"></canvas></div>
-      </div>
-      <div class="panel">
-        <div class="panel-title">Rincian per Unit</div>
-        <div class="panel-sub">Klik header untuk urutkan</div>
-        <div class="table-tools"><input class="search-input" id="ub-search" placeholder="Cari unit bisnis…"></div>
-        <table>
-          <thead><tr>
-            <th data-key="unit">Unit</th><th data-key="real">Realisasi</th><th data-key="rkap">RKAP Prop.</th><th data-key="variance">Var %</th>
-          </tr></thead>
-          <tbody id="ub-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-    <footer class="page-footer">Sumber: sheet <i>Komparasi PL v Realisasi</i>. PIS NC, PIS AP, dan PTK belum memiliki kolom Realisasi terpisah di sheet sumber (tergabung/nihil di periode ini). "TOTAL SHD" adalah angka konsolidasian setelah eliminasi antar-entitas.</footer>
-  </section>
+        <div class="chip-row" id="sum-chips"></div>
+        <footer class="page-footer" id="sum-footer"></footer>
+      </section>
 
-  <!-- ============ PAGE 4: KOMPOSISI COGS ============ -->
-  <section class="page" id="page-cogs">
-    <header class="pagehead">
-      <div>
-        <div class="eyebrow">Cost Structure · YTD Mei</div>
-        <h1><span class="h1-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6.5 4.8"/></svg></span>Komposisi COGS</h1>
-        <div class="subtitle">Struktur Beban Pokok Penjualan (BPP) berdasarkan kategori pengadaan.</div>
-      </div>
-      <div class="toggle-group">
-        <div class="toggle-label">Tampilkan</div>
-        <div class="segmented" id="cogs-segmented">
-          <div class="pill" id="cogs-pill"></div>
-          <button data-basis="rkap_full">RKAP 2026</button>
-          <button data-basis="rkap_prop">RKAP Prop. YTD Mei</button>
-          <button data-basis="realisasi">Realisasi YTD Mei</button>
+      <!-- ============ PAGE 2: SEASONALITY BULANAN ============ -->
+      <section class="page" id="page-seasonality">
+        <header class="pagehead">
+          <div>
+            <div class="eyebrow">RKAP 2026 · Pola Bulanan</div>
+            <h1><span class="h1-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M7 15l2 2 4-4"/></svg></span>Seasonality Bulanan (Jan–Des)</h1>
+            <div class="subtitle">Pola bulanan RKAP 2026 untuk segmen <b>OPSEN</b> (segmen komersial inti, ±94% dari total pendapatan konsolidasian).</div>
+          </div>
+          <div class="toggle-group">
+            <div class="toggle-label">Komponen P&amp;L</div>
+            <select class="dropdown" id="seas-select"></select>
+          </div>
+        </header>
+        <div class="main-grid" style="grid-template-columns:1fr;">
+          <div class="panel">
+            <div class="panel-title" id="seas-title">Pendapatan Usaha — Pola Bulanan RKAP 2026</div>
+            <div class="panel-sub" id="seas-sub">US$ Juta · OPSEN · titik merah menandai bulan periode terpilih</div>
+            <div class="chart-wrap"><canvas id="seas-chart"></canvas></div>
+          </div>
         </div>
-      </div>
-    </header>
-    <div class="main-grid">
-      <div class="panel">
-        <div class="panel-title">Komposisi berdasarkan Kategori</div>
-        <div class="panel-sub">US$ Juta</div>
-        <div class="chart-wrap short"><canvas id="cogs-donut"></canvas></div>
-      </div>
-      <div class="panel">
-        <div class="panel-title">RKAP Prop. vs Realisasi per Kategori</div>
-        <div class="panel-sub">US$ Juta</div>
-        <div class="chart-wrap short"><canvas id="cogs-bar"></canvas></div>
-      </div>
-    </div>
-    <div class="panel" style="margin-top:16px;">
-      <div class="panel-title">Rincian Kategori COGS</div>
-      <table>
-        <thead><tr>
-          <th data-key="name">Kategori</th><th data-key="rkap_full">RKAP 2026</th><th data-key="rkap_prop">RKAP Prop.</th><th data-key="realisasi">Realisasi</th>
-        </tr></thead>
-        <tbody id="cogs-tbody"></tbody>
-      </table>
-    </div>
-    <footer class="page-footer" id="cogs-footer">Sumber: sheet <i>Komposisi COGS</i>.</footer>
-  </section>
-
-  <!-- ============ PAGE 5: VARIANCE ANALYSIS ============ -->
-  <section class="page" id="page-variance">
-    <header class="pagehead">
-      <div>
-        <div class="eyebrow">Volume &amp; Harga · YTD Mei</div>
-        <h1><span class="h1-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 6h7v7"/></svg></span>Variance Analysis (Volume/Harga)</h1>
-        <div class="subtitle">Dekomposisi selisih pendapatan Realisasi vs RKAP Proporsional menjadi <b>Varian Volume</b> dan <b>Varian Harga</b>, per segmen bisnis.</div>
-      </div>
-    </header>
-    <div class="main-grid" style="grid-template-columns:1fr;">
-      <div class="panel">
-        <div class="panel-title">Dekomposisi Varian Pendapatan per Segmen</div>
-        <div class="panel-sub">US$ Juta</div>
-        <div class="legend-row">
-          <span><span class="legend-dot" style="background:#114B7A"></span>Varian Volume</span>
-          <span><span class="legend-dot" style="background:#B4720A"></span>Varian Harga</span>
+        <div class="panel" style="margin-top:16px;">
+          <div class="panel-title">Rincian per Bulan</div>
+          <div class="table-scroll"><table>
+            <thead><tr id="seas-thead-row"></tr></thead>
+            <tbody id="seas-tbody"></tbody>
+          </table></div>
         </div>
-        <div class="chart-wrap"><canvas id="var-chart"></canvas></div>
-      </div>
-    </div>
-    <div class="panel" style="margin-top:16px;">
-      <div class="panel-title">Rincian Volume, Harga &amp; Pendapatan per Segmen</div>
-      <table>
-        <thead><tr>
-          <th data-key="name">Segmen</th>
-          <th data-key="rkap_volume">Vol. RKAP (KL)</th><th data-key="real_volume">Vol. Real (KL)</th>
-          <th data-key="rkap_price">Harga RKAP</th><th data-key="real_price">Harga Real</th>
-          <th data-key="rkap_revenue">Rev. RKAP</th><th data-key="real_revenue">Rev. Real</th>
-          <th data-key="pct_rev">% Rev</th>
-        </tr></thead>
-        <tbody id="var-tbody"></tbody>
-      </table>
-    </div>
-    <footer class="page-footer">Sumber: sheet <i>Variance PL per UB</i>. Varian Volume = dampak perubahan volume pada harga RKAP; Varian Harga = dampak perubahan harga pada volume Realisasi.</footer>
-  </section>
+        <footer class="page-footer">Sumber: sheet <i>Seasonality PL-All</i> (blok segmen OPSEN, kolom Jan–Des). Subsidiari (PPT, PIMD, dll.) memiliki pola musiman masing-masing yang tidak dikonsolidasikan bulanan di sheet ini.</footer>
+      </section>
 
-</main>
+      <!-- ============ PAGE 3: PER UNIT BISNIS ============ -->
+      <section class="page" id="page-unitbisnis">
+        <header class="pagehead">
+          <div>
+            <div class="eyebrow">RKAP Proporsional vs Realisasi</div>
+            <h1><span class="h1-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 9h1M9 13h1M14 9h1M14 13h1M9 21v-4h6v4"/></svg></span>Perbandingan per Unit Bisnis</h1>
+            <div class="subtitle">Klik bar atau baris tabel untuk menyorot unit bisnis tertentu.</div>
+          </div>
+          <div class="toggle-group">
+            <div class="toggle-label">Metrik</div>
+            <select class="dropdown" id="ub-select"></select>
+          </div>
+        </header>
+        <div class="main-grid">
+          <div class="panel">
+            <div class="panel-title" id="ub-title">Pendapatan Usaha per Unit Bisnis</div>
+            <div class="panel-sub">US$ Juta · klik bar untuk menyorot baris di tabel</div>
+            <div class="legend-row">
+              <span><span class="legend-dot" style="background:#B7C4D6"></span>RKAP Proporsional</span>
+              <span><span class="legend-dot" style="background:#114B7A"></span>Realisasi</span>
+            </div>
+            <div class="chart-wrap"><canvas id="ub-chart"></canvas></div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Rincian per Unit</div>
+            <div class="panel-sub">Klik header untuk urutkan</div>
+            <div class="table-tools"><input class="search-input" id="ub-search" placeholder="Cari unit bisnis…"></div>
+            <div class="table-scroll"><table>
+              <thead><tr>
+                <th data-key="unit">Unit</th><th data-key="real">Realisasi</th><th data-key="rkap">RKAP Prop.</th><th data-key="variance">Var %</th>
+              </tr></thead>
+              <tbody id="ub-tbody"></tbody>
+            </table></div>
+          </div>
+        </div>
+        <footer class="page-footer">Sumber: sheet <i>Komparasi PL v Realisasi</i>. PIS NC, PIS AP, dan PTK belum memiliki kolom Realisasi terpisah di sheet sumber. "TOTAL SHD" adalah angka konsolidasian setelah eliminasi antar-entitas.</footer>
+      </section>
+
+      <!-- ============ PAGE 4: KOMPOSISI COGS ============ -->
+      <section class="page" id="page-cogs">
+        <header class="pagehead">
+          <div>
+            <div class="eyebrow">Cost Structure</div>
+            <h1><span class="h1-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6.5 4.8"/></svg></span>Komposisi COGS</h1>
+            <div class="subtitle">Struktur Beban Pokok Penjualan (BPP) berdasarkan kategori pengadaan.</div>
+          </div>
+          <div class="toggle-group">
+            <div class="toggle-label">Tampilkan</div>
+            <div class="segmented" id="cogs-segmented">
+              <div class="pill" id="cogs-pill"></div>
+              <button data-basis="rkap_full">RKAP 2026</button>
+              <button data-basis="rkap_prop">RKAP Prop.</button>
+              <button data-basis="realisasi">Realisasi</button>
+            </div>
+          </div>
+        </header>
+        <div class="main-grid">
+          <div class="panel">
+            <div class="panel-title">Komposisi berdasarkan Kategori</div>
+            <div class="panel-sub">US$ Juta</div>
+            <div class="chart-wrap short"><canvas id="cogs-donut"></canvas></div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">RKAP Prop. vs Realisasi per Kategori</div>
+            <div class="panel-sub">US$ Juta</div>
+            <div class="chart-wrap short"><canvas id="cogs-bar"></canvas></div>
+          </div>
+        </div>
+        <div class="panel" style="margin-top:16px;">
+          <div class="panel-title">Rincian Kategori COGS</div>
+          <div class="table-scroll"><table>
+            <thead><tr>
+              <th data-key="name">Kategori</th><th data-key="rkap_full">RKAP 2026</th><th data-key="rkap_prop">RKAP Prop.</th><th data-key="realisasi">Realisasi</th>
+            </tr></thead>
+            <tbody id="cogs-tbody"></tbody>
+          </table></div>
+        </div>
+        <footer class="page-footer" id="cogs-footer">Sumber: sheet <i>Komposisi COGS</i>.</footer>
+      </section>
+
+      <!-- ============ PAGE 5: VARIANCE ANALYSIS ============ -->
+      <section class="page" id="page-variance">
+        <header class="pagehead">
+          <div>
+            <div class="eyebrow">Volume &amp; Harga</div>
+            <h1><span class="h1-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 6h7v7"/></svg></span>Variance Analysis (Volume/Harga)</h1>
+            <div class="subtitle">Dekomposisi selisih pendapatan Realisasi vs RKAP Proporsional menjadi <b>Varian Volume</b> dan <b>Varian Harga</b>, per segmen bisnis.</div>
+          </div>
+        </header>
+        <div class="main-grid" style="grid-template-columns:1fr;">
+          <div class="panel">
+            <div class="panel-title">Dekomposisi Varian Pendapatan per Segmen</div>
+            <div class="panel-sub">US$ Juta</div>
+            <div class="legend-row">
+              <span><span class="legend-dot" style="background:#114B7A"></span>Varian Volume</span>
+              <span><span class="legend-dot" style="background:#B4720A"></span>Varian Harga</span>
+            </div>
+            <div class="chart-wrap"><canvas id="var-chart"></canvas></div>
+          </div>
+        </div>
+        <div class="panel" style="margin-top:16px;">
+          <div class="panel-title">Rincian Volume, Harga &amp; Pendapatan per Segmen</div>
+          <div class="table-scroll"><table>
+            <thead><tr>
+              <th data-key="name">Segmen</th>
+              <th data-key="rkap_volume">Vol. RKAP (KL)</th><th data-key="real_volume">Vol. Real (KL)</th>
+              <th data-key="rkap_price">Harga RKAP</th><th data-key="real_price">Harga Real</th>
+              <th data-key="rkap_revenue">Rev. RKAP</th><th data-key="real_revenue">Rev. Real</th>
+              <th data-key="pct_rev">% Rev</th>
+            </tr></thead>
+            <tbody id="var-tbody"></tbody>
+          </table></div>
+        </div>
+        <footer class="page-footer">Sumber: sheet <i>Variance PL per UB</i>. Varian Volume = dampak perubahan volume pada harga RKAP; Varian Harga = dampak perubahan harga pada volume Realisasi.</footer>
+      </section>
+
+      <!-- ============ PAGE 6: UPDATE DATA (maintenance guide) ============ -->
+      <section class="page" id="page-update">
+        <header class="pagehead">
+          <div>
+            <div class="eyebrow">Maintenance Guide</div>
+            <h1><span class="h1-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span>Update Data Periode Baru</h1>
+            <div class="subtitle">Panduan menambahkan periode baru (mis. Juli 2026 dan seterusnya) ke dashboard ini — semua lewat browser github.com, tanpa install apa pun.</div>
+          </div>
+        </header>
+
+        <div class="guide-step">
+          <h3><span class="guide-step-num">1</span>Minta Claude membuatkan file JSON periode baru</h3>
+          <p>Upload workbook <code>.xlsb</code> bulan tersebut (mis. "07. PL Seasonality ... Base Juli.xlsb") ke chat Claude, lalu minta: <i>"tolong extract data periode Juli ini jadi format JSON yang sama seperti periode sebelumnya untuk dashboard saya"</i>. Claude akan menghasilkan satu file <code>2026-07.json</code> dengan struktur yang sama persis seperti periode-periode sebelumnya.</p>
+          <p>Penting: pastikan workbook barunya masih pakai template yang sama (ada sheet <code>Summary PL-All</code>, <code>Komparasi PL v Realisasi</code>, <code>Komposisi COGS</code>, <code>Variance PL per UB</code>) — kalau strukturnya berubah, kabari Claude supaya disesuaikan dulu.</p>
+        </div>
+
+        <div class="guide-step">
+          <h3><span class="guide-step-num">2</span>Upload file JSON ke folder <code>data/periods/</code></h3>
+          <p>Di repo GitHub kamu, masuk ke folder <code>data/periods</code> → <b>Add file → Upload files</b> → drag file <code>2026-07.json</code> yang baru dibuatkan Claude → Commit changes.</p>
+        </div>
+
+        <div class="guide-step">
+          <h3><span class="guide-step-num">3</span>Daftarkan periode baru di <code>manifest.json</code></h3>
+          <p>Buka <code>data/periods/manifest.json</code> → klik pensil (Edit) → tambahkan entri baru ke array <code>periods</code>, dan update <code>default</code> ke periode terbaru:</p>
+          <pre id="manifest-example">{
+  "periods": [
+    { "key": "2026-04", "label": "April", "monthIndex": 3 },
+    { "key": "2026-05", "label": "Mei",   "monthIndex": 4 },
+    { "key": "2026-06", "label": "Juni",  "monthIndex": 5 },
+    { "key": "2026-07", "label": "Juli",  "monthIndex": 6 }
+  ],
+  "default": "2026-07"
+}</pre>
+          <p><code>monthIndex</code> pakai basis 0 (Jan=0, Feb=1, … Jul=6, … Des=11) — dipakai untuk menandai titik bulan berjalan di halaman Seasonality. <code>key</code> harus sama persis dengan nama file JSON-nya (tanpa <code>.json</code>). Commit changes.</p>
+        </div>
+
+        <div class="guide-step">
+          <h3><span class="guide-step-num">4</span>Selesai — cek dashboard</h3>
+          <p>Refresh link GitHub Pages kamu. Dropdown <b>"Periode"</b> di pojok kanan atas akan otomatis menampilkan periode baru begitu <code>manifest.json</code> ter-update. Tidak perlu ubah <code>index.html</code> sama sekali untuk menambah periode baru.</p>
+        </div>
+
+        <div class="guide-step" style="border-left:3px solid var(--amber); background:var(--amber-bg);">
+          <h3 style="color:#7A5205;"><span class="guide-step-num" style="background:var(--amber);">!</span>Kalau ragu</h3>
+          <p style="color:#7A5205;">Kirim saja workbook bulan barunya ke chat Claude dan minta dibuatkan file JSON + dipandu upload-nya persis seperti sebelumnya — tidak perlu menulis JSON manual.</p>
+        </div>
+      </section>
+
+      </div><!-- /#pages -->
+    </main>
+  </div>
+</div>
 
 <script>
 /* ============================================================
@@ -378,10 +494,7 @@ function fmtCurrency(v){
   const s = abs.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1});
   return v<0 ? '('+s+')' : s;
 }
-function fmtInt(v){
-  if(v===null||v===undefined) return '—';
-  return Math.round(v).toLocaleString('en-US');
-}
+function fmtInt(v){ if(v===null||v===undefined) return '—'; return Math.round(v).toLocaleString('en-US'); }
 function fmtPercent(v){ if(v===null||v===undefined) return '—'; return (v*100).toFixed(1)+'%'; }
 
 function setupSegmented(containerId, pillId, onChange){
@@ -416,56 +529,101 @@ function setupSortableTable(theadSelector, renderFn, state){
 }
 
 /* ============================================================
-   PAGE ROUTING
+   PAGE ROUTING + MOBILE SIDEBAR
 ============================================================ */
+const pageTitles = {summary:'Summary P&L', seasonality:'Seasonality Bulanan', unitbisnis:'Per Unit Bisnis', cogs:'Komposisi COGS', variance:'Variance Analysis', update:'Update Data'};
 document.querySelectorAll('.sb-item').forEach(item=>{
   item.addEventListener('click',()=>{
     document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
     item.classList.add('active');
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     document.getElementById('page-'+item.dataset.page).classList.add('active');
+    document.getElementById('topbar-title').textContent = pageTitles[item.dataset.page] || 'P&L Dashboard';
+    closeSidebar();
     window.dispatchEvent(new Event('resize'));
   });
 });
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('sidebar-overlay');
+function openSidebar(){ sidebar.classList.add('open'); overlay.classList.add('open'); }
+function closeSidebar(){ if(window.innerWidth<=980){ sidebar.classList.remove('open'); overlay.classList.remove('open'); } }
+document.getElementById('menuToggle').addEventListener('click', ()=>{
+  sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+});
+overlay.addEventListener('click', closeSidebar);
 
 /* ============================================================
-   DATA LOADING
+   DATA LOADING + PERIOD SWITCHING
 ============================================================ */
+let MANIFEST = null;
+let SEASONALITY = null;
+let periodCache = {};
+let currentKey = null;
+
 async function loadJSON(path){
   const res = await fetch(path);
   if(!res.ok) throw new Error('HTTP '+res.status+' loading '+path);
   return res.json();
 }
+async function loadPeriod(key){
+  if(periodCache[key]) return periodCache[key];
+  const data = await loadJSON(`data/periods/${key}.json`);
+  periodCache[key] = data;
+  return data;
+}
 
 async function boot(){
   try{
-    const [summary, seasonality, unitBisnis, cogs, variance] = await Promise.all([
-      loadJSON('data/summary_pl.json'),
-      loadJSON('data/seasonality_opsen.json'),
-      loadJSON('data/per_unit_bisnis.json'),
-      loadJSON('data/komposisi_cogs.json'),
-      loadJSON('data/variance_analysis.json'),
-    ]);
-    document.getElementById('loadingState').style.display='none';
+    MANIFEST = await loadJSON('data/periods/manifest.json');
+    SEASONALITY = await loadJSON('data/seasonality_opsen.json');
+    currentKey = MANIFEST.default || MANIFEST.periods[MANIFEST.periods.length-1].key;
 
-    initSummaryPage(summary);
-    initSeasonalityPage(seasonality);
-    initUnitBisnisPage(unitBisnis);
-    initCogsPage(cogs);
-    initVariancePage(variance);
+    const select = document.getElementById('periodSelect');
+    MANIFEST.periods.forEach(p=>{
+      const opt = document.createElement('option'); opt.value=p.key; opt.textContent=p.label+' 2026'; select.appendChild(opt);
+    });
+    select.value = currentKey;
+    select.addEventListener('change', ()=> switchPeriod(select.value));
+
+    const periodData = await loadPeriod(currentKey);
+    document.getElementById('loadingState').style.display='none';
+    document.getElementById('pages').style.display='block';
+
+    renderPeriodNote(periodData);
+    initSummaryPage(periodData);
+    initSeasonalityPage(SEASONALITY, periodData.meta.monthIndex);
+    initUnitBisnisPage(periodData);
+    initCogsPage(periodData);
+    initVariancePage(periodData);
 
   }catch(err){
     document.getElementById('loadingState').style.display='none';
     const box = document.getElementById('errorState');
     box.style.display='block';
-    box.innerHTML = '<b>Gagal memuat data.</b><br>'+err.message+'<br><br>Pastikan semua file di folder <code>data/</code> sudah diupload dengan nama yang tepat: summary_pl.json, seasonality_opsen.json, per_unit_bisnis.json, komposisi_cogs.json, variance_analysis.json. Dan pastikan dashboard dibuka lewat GitHub Pages, bukan dobel-klik file lokal.';
+    box.innerHTML = '<b>Gagal memuat data.</b><br>'+err.message+'<br><br>Pastikan folder <code>data/periods/</code> berisi <code>manifest.json</code> dan file periode (mis. <code>2026-06.json</code>), dan <code>data/seasonality_opsen.json</code> ada. Dashboard harus dibuka lewat GitHub Pages, bukan dobel-klik file lokal.';
     console.error(err);
   }
+}
+
+function renderPeriodNote(periodData){
+  document.getElementById('sb-period-note').innerHTML = `Data per ${periodData.meta.period}<br>Sumber: workbook internal SHD`;
+}
+
+async function switchPeriod(key){
+  currentKey = key;
+  const periodData = await loadPeriod(key);
+  renderPeriodNote(periodData);
+  initSummaryPage(periodData);
+  updateSeasonalityMarker(periodData.meta.monthIndex);
+  initUnitBisnisPage(periodData);
+  initCogsPage(periodData);
+  initVariancePage(periodData);
 }
 
 /* ============================================================
    PAGE 1: SUMMARY P&L
 ============================================================ */
+let summaryChart = null;
 function initSummaryPage(json){
   const META = json.meta, plData = json.lines, chipData = json.chips;
   const basisLabel = META.basisLabels, basisCaption = META.basisCaption;
@@ -473,35 +631,33 @@ function initSummaryPage(json){
 
   document.getElementById('sum-subtitle').textContent = `Data per ${META.period}, dalam ${META.unit}. Klik bar, baris tabel, atau kartu KPI untuk saling menyorot.`;
   document.getElementById('sum-unitlabel').textContent = `${META.unit} · klik bar untuk menyorot baris di tabel`;
-  document.getElementById('sum-footer').innerHTML = `Sumber: ${META.source}. a=RKAP 2026 (Full Year), b=RKAP Proporsional YTD Mei, c=Realisasi YTD Mei, d=Prognosa 2026.`;
+  document.getElementById('sum-footer').innerHTML = `Sumber: ${META.source}. a=RKAP 2026 (Full Year), b=RKAP Proporsional ${META.period}, c=Realisasi ${META.period}, d=Prognosa 2026.`;
 
   function variance(row){ const bv=row[state.basis]; if(bv===0) return null; return (row.c-bv)/Math.abs(bv)*100; }
   function isGood(row,v){ if(v===null) return true; return row.hib ? v>=0 : v<=0; }
   function fmtVal(row,key){ const v=row[key]; return row.unit==='percent'?fmtPercent(v):fmtCurrency(v); }
   function chartRows(){ return plData.filter(r=>r.unit==='currency'); }
+  const kpiIcons = {'Pendapatan Usaha':'💰','Laba/(Rugi) Usaha':'📈','Laba/(Rugi) Bersih':'✅','EBITDA':'⚙️','EBITDA Margin':'🎯'};
 
-  let chart;
-  function buildChart(){
-    const ctx = document.getElementById('sum-chart').getContext('2d');
+  function buildOrUpdateChart(){
     const rows = chartRows();
-    chart = new Chart(ctx,{type:'bar',data:{labels:rows.map(r=>r.name),datasets:[
-      {label:'Basis', data:rows.map(r=>r[state.basis]), backgroundColor:'#B7C4D6', borderRadius:4, barThickness:9},
-      {label:'Realisasi', data:rows.map(r=>r.c), backgroundColor:rows.map(r=>isGood(r,variance(r))?'#0B6E4F':'#C1392B'), borderRadius:4, barThickness:9}
+    const cfg = {
+      labels: rows.map(r=>r.name),
+      basis: rows.map(r=>r[state.basis]),
+      real: rows.map(r=>r.c),
+      colors: rows.map(r=>isGood(r,variance(r))?'#0B6E4F':'#C1392B')
+    };
+    if(summaryChart){ summaryChart.destroy(); }
+    const ctx = document.getElementById('sum-chart').getContext('2d');
+    summaryChart = new Chart(ctx,{type:'bar',data:{labels:cfg.labels,datasets:[
+      {label:'Basis', data:cfg.basis, backgroundColor:'#B7C4D6', borderRadius:4, barThickness:9},
+      {label:'Realisasi', data:cfg.real, backgroundColor:cfg.colors, borderRadius:4, barThickness:9}
     ]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
       onClick:(evt,els)=>{ if(els.length) toggleSelect(rows[els[0].index].name); },
       plugins:{legend:{display:false},tooltip:{callbacks:{label:(c)=>c.dataset.label+': '+fmtCurrency(c.parsed.x)+' Jt US$'}}},
       scales:{x:{grid:{color:'#EDEFF3'},ticks:{font:{family:'IBM Plex Mono',size:10.5}}},y:{grid:{display:false},ticks:{font:{family:'Inter',size:11}}}}
     }});
   }
-  function updateChart(){
-    const rows = chartRows();
-    chart.data.datasets[0].data = rows.map(r=>r[state.basis]);
-    chart.data.datasets[1].backgroundColor = rows.map(r=>isGood(r,variance(r))?'#0B6E4F':'#C1392B');
-    chart.update();
-  }
-  const kpiIcons = {
-    'Pendapatan Usaha':'💰','Laba/(Rugi) Usaha':'📈','Laba/(Rugi) Bersih':'✅','EBITDA':'⚙️','EBITDA Margin':'🎯'
-  };
   function renderKPI(){
     const names=['Pendapatan Usaha','Laba/(Rugi) Usaha','Laba/(Rugi) Bersih','EBITDA','EBITDA Margin'];
     const row=document.getElementById('sum-kpi'); row.innerHTML='';
@@ -557,14 +713,23 @@ function initSummaryPage(json){
   function toggleSelect(name){ state.selected = state.selected===name?null:name; renderKPI(); renderTable(); }
   function renderAll(){
     document.getElementById('sum-caption').innerHTML = basisCaption[state.basis];
-    renderKPI(); updateChart(); renderTable(); renderChips(); renderInsight();
+    renderKPI(); buildOrUpdateChart(); renderTable(); renderChips(); renderInsight();
   }
 
+  const segmented = document.getElementById('sum-segmented');
+  segmented.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+  segmented.querySelector('button[data-basis="b"]').classList.add('active');
   const positionPill = setupSegmented('sum-segmented','sum-pill',(basis)=>{ state.basis=basis; renderAll(); });
-  document.querySelectorAll('#sum-segmented button').forEach(b=>{ if(b.dataset.basis===state.basis) b.classList.add('active'); });
-  setupSortableTable('#page-summary thead', renderTable, state);
-  document.getElementById('sum-search').addEventListener('input',e=>{ state.search=e.target.value; renderTable(); });
-  document.getElementById('sum-export').addEventListener('click',()=>{
+  // re-bind sortable table & search fresh each period switch (avoid duplicate listeners by cloning)
+  const searchInput = document.getElementById('sum-search');
+  const freshSearch = searchInput.cloneNode(true);
+  searchInput.parentNode.replaceChild(freshSearch, searchInput);
+  freshSearch.addEventListener('input',e=>{ state.search=e.target.value; renderTable(); });
+
+  const exportBtn = document.getElementById('sum-export');
+  const freshExport = exportBtn.cloneNode(true);
+  exportBtn.parentNode.replaceChild(freshExport, exportBtn);
+  freshExport.addEventListener('click',()=>{
     const header=['Komponen','Realisasi (c)',basisLabel[state.basis],'Variance %'];
     const lines=[header.join(',')];
     plData.forEach(r=>{ const v=variance(r);
@@ -572,24 +737,32 @@ function initSummaryPage(json){
     });
     const blob=new Blob([lines.join('\n')],{type:'text/csv'});
     const url=URL.createObjectURL(blob); const a=document.createElement('a');
-    a.href=url; a.download='summary_pl_rkap_vs_realisasi.csv'; a.click(); URL.revokeObjectURL(url);
+    a.href=url; a.download=`summary_pl_${META.key||'export'}.csv`; a.click(); URL.revokeObjectURL(url);
   });
+  document.querySelectorAll('#page-summary thead th').forEach(th=>{
+    const fresh = th.cloneNode(true);
+    th.parentNode.replaceChild(fresh, th);
+  });
+  setupSortableTable('#page-summary thead', renderTable, state);
 
-  buildChart(); renderAll(); positionPill();
+  renderAll(); positionPill();
 }
 
 /* ============================================================
    PAGE 2: SEASONALITY BULANAN
 ============================================================ */
-function initSeasonalityPage(json){
+let seasChart = null;
+let seasCurrentMonthIndex = 4;
+function initSeasonalityPage(json, monthIndex){
+  seasCurrentMonthIndex = monthIndex;
   const months = json.months, lines = json.lines;
   const select = document.getElementById('seas-select');
+  select.innerHTML='';
   Object.keys(lines).forEach(name=>{
     const opt=document.createElement('option'); opt.value=name; opt.textContent=name; select.appendChild(opt);
   });
   select.value = 'Pendapatan Usaha';
 
-  let chart;
   function render(){
     const name = select.value;
     const line = lines[name];
@@ -597,12 +770,12 @@ function initSeasonalityPage(json){
 
     const ctx = document.getElementById('seas-chart').getContext('2d');
     const fmt = line.unit==='percent' ? (v)=>fmtPercent(v) : (v)=>fmtCurrency(v)+' Jt';
-    if(chart) chart.destroy();
-    chart = new Chart(ctx,{
+    if(seasChart) seasChart.destroy();
+    seasChart = new Chart(ctx,{
       type:'line',
       data:{labels:months, datasets:[{
         label:name, data:line.values, borderColor:'#114B7A', backgroundColor:'rgba(17,75,122,0.08)',
-        fill:true, tension:.35, pointRadius:4, pointBackgroundColor: months.map((m,i)=> i===4 ? '#C1392B' : '#114B7A'),
+        fill:true, tension:.35, pointRadius:4, pointBackgroundColor: months.map((m,i)=> i===seasCurrentMonthIndex ? '#C1392B' : '#114B7A'),
         pointBorderColor:'#fff', pointBorderWidth:1.5, pointHoverRadius:6,
       }]},
       options:{responsive:true, maintainAspectRatio:false,
@@ -622,33 +795,42 @@ function initSeasonalityPage(json){
       return `<tr class="${n===name?'selected':''}"><td>${n}</td>${l.values.map(v=>`<td>${fmtCell(v)}</td>`).join('')}</tr>`;
     }).join('');
   }
-  select.addEventListener('change', render);
+  select.onchange = render;
   render();
+}
+function updateSeasonalityMarker(monthIndex){
+  seasCurrentMonthIndex = monthIndex;
+  if(seasChart){
+    seasChart.data.datasets[0].pointBackgroundColor = seasChart.data.labels.map((m,i)=> i===monthIndex ? '#C1392B' : '#114B7A');
+    seasChart.update();
+  }
 }
 
 /* ============================================================
    PAGE 3: PER UNIT BISNIS
 ============================================================ */
+let ubChart = null;
 function initUnitBisnisPage(json){
   const units = json.units;
   const metrics = ['Pendapatan Usaha','BPP','Laba Kotor','Beban Usaha','Laba Usaha','Laba Bersih','EBITDA','EBITDA Margin','BOPO'];
   const percentMetrics = new Set(['EBITDA Margin','BOPO']);
   const select = document.getElementById('ub-select');
+  select.innerHTML='';
   metrics.forEach(m=>{ const o=document.createElement('option'); o.value=m; o.textContent=m; select.appendChild(o); });
   select.value = 'Pendapatan Usaha';
 
   let state = {metric:'Pendapatan Usaha', sortKey:'real', sortDir:'desc', search:'', selected:null};
-  let chart;
 
   function displayUnits(){
     return units.filter(u=>!u.unit.startsWith('TOTAL')).filter(u=>u.unit.toLowerCase().includes(state.search.toLowerCase()));
   }
   function fmtM(v){ return percentMetrics.has(state.metric) ? fmtPercent(v) : fmtCurrency(v); }
 
-  function buildChart(){
-    const ctx = document.getElementById('ub-chart').getContext('2d');
+  function buildOrUpdateChart(){
     const rows = displayUnits().slice().sort((a,b)=> b[state.metric].real - a[state.metric].real);
-    chart = new Chart(ctx,{type:'bar',data:{labels:rows.map(r=>r.unit),datasets:[
+    if(ubChart) ubChart.destroy();
+    const ctx = document.getElementById('ub-chart').getContext('2d');
+    ubChart = new Chart(ctx,{type:'bar',data:{labels:rows.map(r=>r.unit),datasets:[
       {label:'RKAP Proporsional', data:rows.map(r=>r[state.metric].rkap), backgroundColor:'#B7C4D6', borderRadius:4, barThickness:9},
       {label:'Realisasi', data:rows.map(r=>r[state.metric].real), backgroundColor:'#114B7A', borderRadius:4, barThickness:9}
     ]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
@@ -656,13 +838,6 @@ function initUnitBisnisPage(json){
       plugins:{legend:{display:false}, tooltip:{callbacks:{label:(c)=>c.dataset.label+': '+fmtM(c.parsed.x)}}},
       scales:{x:{grid:{color:'#EDEFF3'},ticks:{font:{family:'IBM Plex Mono',size:10.5}}}, y:{grid:{display:false},ticks:{font:{family:'Inter',size:11}}}}
     }});
-  }
-  function updateChart(){
-    const rows = displayUnits().slice().sort((a,b)=> b[state.metric].real - a[state.metric].real);
-    chart.data.labels = rows.map(r=>r.unit);
-    chart.data.datasets[0].data = rows.map(r=>r[state.metric].rkap);
-    chart.data.datasets[1].data = rows.map(r=>r[state.metric].real);
-    chart.update();
   }
   function renderTable(){
     let rows = units.filter(u=>u.unit.toLowerCase().includes(state.search.toLowerCase()));
@@ -694,44 +869,48 @@ function initUnitBisnisPage(json){
   }
   function toggleSelect(name){ state.selected = state.selected===name?null:name; renderTable(); }
 
-  select.addEventListener('change',()=>{
+  select.onchange = ()=>{
     state.metric = select.value;
     document.getElementById('ub-title').textContent = `${state.metric} per Unit Bisnis`;
-    updateChart(); renderTable();
+    buildOrUpdateChart(); renderTable();
+  };
+  const searchInput = document.getElementById('ub-search');
+  const freshSearch = searchInput.cloneNode(true);
+  searchInput.parentNode.replaceChild(freshSearch, searchInput);
+  freshSearch.addEventListener('input',e=>{ state.search=e.target.value; buildOrUpdateChart(); renderTable(); });
+
+  document.querySelectorAll('#page-unitbisnis thead th').forEach(th=>{
+    const fresh = th.cloneNode(true);
+    th.parentNode.replaceChild(fresh, th);
   });
-  document.getElementById('ub-search').addEventListener('input',e=>{ state.search=e.target.value; updateChart(); renderTable(); });
   setupSortableTable('#page-unitbisnis thead', renderTable, state);
 
-  buildChart(); renderTable();
+  buildOrUpdateChart(); renderTable();
 }
 
 /* ============================================================
    PAGE 4: KOMPOSISI COGS
 ============================================================ */
+let cogsDonut=null, cogsBar=null;
 function initCogsPage(json){
-  const cats = json.categories, total = json.total;
+  const cats = json.cogs.categories, total = json.cogs.total;
   let state = {basis:'realisasi'};
   const palette = ['#114B7A','#0B6E4F','#B4720A','#8E44AD','#C1392B','#1ABC9C','#7F8C8D','#2C82C9','#D68910','#5D6D7E','#16A085','#A93226'];
 
-  let donut, bar;
-  function buildDonut(){
-    const ctx = document.getElementById('cogs-donut').getContext('2d');
+  function buildOrUpdateDonut(){
     const rows = cats.filter(c=>c[state.basis]>0);
-    donut = new Chart(ctx,{type:'doughnut',data:{labels:rows.map(c=>c.name),datasets:[{data:rows.map(c=>c[state.basis]),backgroundColor:palette,borderColor:'#fff',borderWidth:2}]},
+    if(cogsDonut) cogsDonut.destroy();
+    const ctx = document.getElementById('cogs-donut').getContext('2d');
+    cogsDonut = new Chart(ctx,{type:'doughnut',data:{labels:rows.map(c=>c.name),datasets:[{data:rows.map(c=>c[state.basis]),backgroundColor:palette,borderColor:'#fff',borderWidth:2}]},
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:10.5,family:'Inter'},boxWidth:10}},
         tooltip:{callbacks:{label:(c)=>c.label+': '+fmtCurrency(c.parsed)+' Jt ('+(c.parsed/total[state.basis]*100).toFixed(1)+'%)'}}}}
     });
   }
-  function updateDonut(){
-    const rows = cats.filter(c=>c[state.basis]>0);
-    donut.data.labels = rows.map(c=>c.name);
-    donut.data.datasets[0].data = rows.map(c=>c[state.basis]);
-    donut.update();
-  }
   function buildBar(){
+    if(cogsBar) cogsBar.destroy();
     const ctx = document.getElementById('cogs-bar').getContext('2d');
     const rows = cats.filter(c=> c.rkap_prop>0 || c.realisasi>0);
-    bar = new Chart(ctx,{type:'bar',data:{labels:rows.map(c=>c.name),datasets:[
+    cogsBar = new Chart(ctx,{type:'bar',data:{labels:rows.map(c=>c.name),datasets:[
       {label:'RKAP Proporsional', data:rows.map(c=>c.rkap_prop), backgroundColor:'#B7C4D6', borderRadius:4, barThickness:9},
       {label:'Realisasi', data:rows.map(c=>c.realisasi), backgroundColor:'#0B6E4F', borderRadius:4, barThickness:9}
     ]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
@@ -745,22 +924,26 @@ function initCogsPage(json){
     ).join('') + `<tr style="font-weight:700;border-top:2px solid var(--border);"><td>${total.name}</td><td>${fmtCurrency(total.rkap_full)}</td><td>${fmtCurrency(total.rkap_prop)}</td><td>${fmtCurrency(total.realisasi)}</td></tr>`;
   }
 
-  setupSegmented('cogs-segmented','cogs-pill',(basis)=>{ state.basis=basis; updateDonut(); });
-  document.querySelector('#cogs-segmented button[data-basis="realisasi"]').classList.add('active');
+  const segmented = document.getElementById('cogs-segmented');
+  segmented.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+  segmented.querySelector('button[data-basis="realisasi"]').classList.add('active');
+  setupSegmented('cogs-segmented','cogs-pill',(basis)=>{ state.basis=basis; buildOrUpdateDonut(); });
 
-  buildDonut(); buildBar(); renderTable();
+  buildOrUpdateDonut(); buildBar(); renderTable();
   window.dispatchEvent(new Event('resize'));
 }
 
 /* ============================================================
    PAGE 5: VARIANCE ANALYSIS
 ============================================================ */
+let varChart=null;
 function initVariancePage(json){
-  const segs = json.segments.filter(s=>s.name!=='Total');
-  const totalRow = json.segments.find(s=>s.name==='Total');
+  const segs = json.variance.segments.filter(s=>s.name!=='Total');
+  const totalRow = json.variance.segments.find(s=>s.name==='Total');
 
+  if(varChart) varChart.destroy();
   const ctx = document.getElementById('var-chart').getContext('2d');
-  new Chart(ctx,{type:'bar',data:{labels:segs.map(s=>s.name),datasets:[
+  varChart = new Chart(ctx,{type:'bar',data:{labels:segs.map(s=>s.name),datasets:[
     {label:'Varian Volume', data:segs.map(s=>s.qty_variance), backgroundColor:'#114B7A', borderRadius:4, barThickness:16},
     {label:'Varian Harga', data:segs.map(s=>s.price_variance), backgroundColor:'#B4720A', borderRadius:4, barThickness:16}
   ]},options:{responsive:true,maintainAspectRatio:false,
