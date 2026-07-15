@@ -132,6 +132,14 @@
 
   footer.page-footer{margin-top:22px; font-size:11.5px; color:var(--muted); line-height:1.6; border-top:1px solid var(--border); padding-top:14px;}
 
+  #brandFooter{
+    max-width:1240px; margin:28px auto 0; padding:18px 0 4px; border-top:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center; gap:22px; flex-wrap:wrap;
+  }
+  #brandFooter img{height:34px; width:auto; object-fit:contain;}
+  #brandFooter .brand-divider{width:1px; height:28px; background:var(--border);}
+  #brandFooter .brand-copy{font-size:11px; color:var(--muted); line-height:1.5; text-align:center;}
+
   .loading{display:flex; align-items:center; justify-content:center; height:60vh; font-family:'IBM Plex Mono',monospace; color:var(--muted); font-size:13px;}
   .error-box{max-width:640px; margin:60px auto; background:var(--bad-bg); border:1px solid #F0C7C1; color:var(--bad); padding:18px 22px; border-radius:12px; font-size:13.5px; line-height:1.6;}
 
@@ -164,6 +172,8 @@
     header.pagehead{flex-direction:column; align-items:stretch;}
     .segmented{width:100%;}
     .segmented button{flex:1; text-align:center;}
+    #brandFooter{flex-direction:column; gap:12px; padding:16px 0 4px;}
+    #brandFooter .brand-divider{display:none;}
   }
   /* short/landscape phones: shrink vertical chrome so charts stay visible */
   @media (max-width:980px) and (orientation:landscape){
@@ -480,7 +490,15 @@
       </section>
 
       </div><!-- /#pages -->
-    </main>
+
+      <div id="brandFooter">
+        <img src="assets/logo-pertamina.png" alt="Pertamina Patra Niaga">
+        <div class="brand-divider"></div>
+        <img src="assets/logo-fpf.png" alt="Financial Planning & Forecasting">
+        <div class="brand-divider"></div>
+        <div class="brand-copy">Copyright © 2026. Budget Consolidation.<br>Subholding Downstream</div>
+      </div>
+      </main>
   </div>
 </div>
 
