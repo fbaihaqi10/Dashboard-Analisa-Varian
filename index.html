@@ -27,6 +27,10 @@
   }
   .sb-title{font-family:'Space Grotesk',sans-serif; color:#fff; font-size:15px; font-weight:700; padding:0 10px 4px; letter-spacing:-0.01em;}
   .sb-sub{font-size:10.5px; color:#7C8CA3; padding:0 10px 20px; text-transform:uppercase; letter-spacing:.08em; font-weight:600;}
+  .sb-logo-row{display:flex; align-items:center; justify-content:center; gap:10px; padding:2px 10px 18px;}
+  .sb-logo-chip{background:var(--surface); border-radius:10px; padding:8px 12px; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.18);}
+  .sb-logo-chip img{display:block; height:26px; width:auto; object-fit:contain;}
+  .sb-logo-divider{width:1px; align-self:stretch; background:#1E3350; margin:4px 0;}
   .sb-item{display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:9px; cursor:pointer; font-size:13.5px; font-weight:500; color:var(--sidebar-ink); margin-bottom:3px; transition:background .15s ease, color .15s ease;}
   .sb-item:hover{background:#132840; color:#fff;}
   .sb-item.active{background:var(--sidebar-active); color:#fff; font-weight:600;}
@@ -132,14 +136,6 @@
 
   footer.page-footer{margin-top:22px; font-size:11.5px; color:var(--muted); line-height:1.6; border-top:1px solid var(--border); padding-top:14px;}
 
-  #brandFooter{
-    max-width:1240px; margin:28px auto 0; padding:18px 0 4px; border-top:1px solid var(--border);
-    display:flex; align-items:center; justify-content:center; gap:22px; flex-wrap:wrap;
-  }
-  #brandFooter img{height:34px; width:auto; object-fit:contain;}
-  #brandFooter .brand-divider{width:1px; height:28px; background:var(--border);}
-  #brandFooter .brand-copy{font-size:11px; color:var(--muted); line-height:1.5; text-align:center;}
-
   .loading{display:flex; align-items:center; justify-content:center; height:60vh; font-family:'IBM Plex Mono',monospace; color:var(--muted); font-size:13px;}
   .error-box{max-width:640px; margin:60px auto; background:var(--bad-bg); border:1px solid #F0C7C1; color:var(--bad); padding:18px 22px; border-radius:12px; font-size:13.5px; line-height:1.6;}
 
@@ -172,8 +168,6 @@
     header.pagehead{flex-direction:column; align-items:stretch;}
     .segmented{width:100%;}
     .segmented button{flex:1; text-align:center;}
-    #brandFooter{flex-direction:column; gap:12px; padding:16px 0 4px;}
-    #brandFooter .brand-divider{display:none;}
   }
   /* short/landscape phones: shrink vertical chrome so charts stay visible */
   @media (max-width:980px) and (orientation:landscape){
@@ -194,6 +188,10 @@
 
 <div id="sidebar-overlay"></div>
 <nav id="sidebar">
+  <div class="sb-logo-row">
+    <div class="sb-logo-chip"><img src="assets/logo-pertamina.png" alt="Pertamina"></div>
+    <div class="sb-logo-chip"><img src="assets/logo-fpf.png" alt="FPF"></div>
+  </div>
   <div class="sb-title">P&amp;L Dashboard</div>
   <div class="sb-sub">SH Downstream · RKAP vs Realisasi</div>
   <div class="sb-item active" data-page="summary">
@@ -490,15 +488,7 @@
       </section>
 
       </div><!-- /#pages -->
-
-      <div id="brandFooter">
-        <img src="assets/logo-pertamina.png" alt="Pertamina Patra Niaga">
-        <div class="brand-divider"></div>
-        <img src="assets/logo-fpf.png" alt="Financial Planning & Forecasting">
-        <div class="brand-divider"></div>
-        <div class="brand-copy">Copyright © 2026. Budget Consolidation.<br>Subholding Downstream</div>
-      </div>
-      </main>
+    </main>
   </div>
 </div>
 
