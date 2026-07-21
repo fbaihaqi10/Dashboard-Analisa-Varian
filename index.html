@@ -182,6 +182,21 @@
     .kpi-row{grid-template-columns:repeat(2,1fr);}
     table{font-size:11px;}
   }
+
+  /* ============ ABO PAGE — filter toolbar, tags, dropdown ============ */
+  .abo-toolbar{display:flex; flex-wrap:wrap; gap:10px 16px; align-items:flex-end; margin-bottom:14px;}
+  .abo-filter-group{display:flex; flex-direction:column; gap:6px;}
+  .abo-filter-group .toggle-label{font-size:10.5px;}
+  .abo-groupby-label{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; font-weight:600; margin-bottom:6px;}
+  .filter-tag-row{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; min-height:0;}
+  .filter-tag{display:inline-flex; align-items:center; gap:7px; background:#E9F0F7; border:1px solid #CFE0EE; color:var(--brand-2); font-size:12px; font-weight:600; padding:6px 8px 6px 12px; border-radius:999px;}
+  .filter-tag button{border:none; background:rgba(17,75,122,.12); color:var(--brand-2); width:17px; height:17px; border-radius:50%; cursor:pointer; font-size:12px; line-height:1; display:flex; align-items:center; justify-content:center;}
+  .filter-tag button:hover{background:rgba(17,75,122,.25);}
+  .filter-tag-clear{background:none; border:1px solid var(--border); color:var(--muted); font-size:12px; font-weight:600; padding:6px 12px; border-radius:999px; cursor:pointer;}
+  .filter-tag-clear:hover{border-color:var(--bad); color:var(--bad);}
+  .abo-hint{font-size:12px; color:var(--muted); margin-bottom:2px;}
+  .abo-bar-scroll{max-height:460px; overflow-y:auto;}
+  .waterfall-legend{display:flex; gap:16px; margin:10px 0 4px; font-size:12px; color:var(--muted); flex-wrap:wrap;}
 </style>
 </head>
 <body>
@@ -213,6 +228,10 @@
   <div class="sb-item" data-page="variance">
     <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 6h7v7"/></svg></span>
     Variance Analysis<span class="badge"></span>
+  </div>
+  <div class="sb-item" data-page="abo">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16"/><path d="M7 19V10"/><path d="M12 19V5"/><path d="M17 19v-7"/></svg></span>
+    Anggaran Biaya Ops.<span class="badge"></span>
   </div>
   <div class="sb-divider"></div>
   <div class="sb-item" data-page="update">
@@ -440,6 +459,98 @@
         <footer class="page-footer">Sumber: sheet <i>Variance PL per UB</i>. Varian Volume = dampak perubahan volume pada harga RKAP; Varian Harga = dampak perubahan harga pada volume Realisasi.</footer>
       </section>
 
+      <!-- ============ PAGE: ANGGARAN BIAYA OPERASIONAL (ABO) ============ -->
+      <section class="page" id="page-abo">
+        <header class="pagehead">
+          <div>
+            <div class="eyebrow">SH Downstream · Realisasi Biaya (FBL3N + EXTRACOMP)</div>
+            <h1><span class="h1-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16"/><path d="M7 19V10"/><path d="M12 19V5"/><path d="M17 19v-7"/></svg></span>Anggaran Biaya Operasional (ABO)</h1>
+            <div class="subtitle" id="abo-subtitle">Klik bar untuk menyaring (cross-filter) — gunakan kombinasi dimensi untuk drill-down.</div>
+          </div>
+        </header>
+
+        <div class="abo-toolbar">
+          <div class="abo-filter-group">
+            <div class="toggle-label">Include / Exclude</div>
+            <div class="segmented" id="abo-seg-incexc">
+              <div class="pill"></div>
+              <button data-val="include">Include</button>
+              <button data-val="ALL">Semua</button>
+              <button data-val="Exclude">Exclude</button>
+            </div>
+          </div>
+          <div class="abo-filter-group">
+            <div class="toggle-label">COGS / Beban Usaha</div>
+            <div class="segmented" id="abo-seg-cogsbu">
+              <div class="pill"></div>
+              <button data-val="ALL">Semua</button>
+              <button data-val="COGS">COGS</button>
+              <button data-val="Beban Usaha">Beban Usaha</button>
+            </div>
+          </div>
+          <div class="abo-filter-group">
+            <div class="toggle-label">KK Report</div>
+            <div class="segmented" id="abo-seg-kk">
+              <div class="pill"></div>
+              <button data-val="ALL">Semua</button>
+              <button data-val="C6">C6</button>
+              <button data-val="C7">C7</button>
+              <button data-val="C8">C8</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-tag-row" id="abo-filter-tags"></div>
+
+        <div class="kpi-row" id="abo-kpi" style="grid-template-columns:repeat(4,1fr);"></div>
+
+        <div class="main-grid">
+          <div class="panel">
+            <div class="panel-title">Breakdown Biaya</div>
+            <div class="abo-groupby-label">Kelompokkan berdasarkan</div>
+            <select class="dropdown" id="abo-groupby" style="margin-bottom:12px;">
+              <option value="region">Mapping Region</option>
+              <option value="direktorat">Direktorat</option>
+              <option value="cekomut">CE Komut</option>
+              <option value="cesubkomut">CE Subkomut</option>
+              <option value="vp">VP Pengusul</option>
+            </select>
+            <div class="abo-hint" id="abo-bar-hint"></div>
+            <div class="chart-wrap abo-bar-scroll" style="height:auto;"><canvas id="abo-bar-chart"></canvas></div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Rincian</div>
+            <div class="panel-sub">Klik baris untuk menyaring · klik header untuk urutkan</div>
+            <div class="table-tools">
+              <input class="search-input" id="abo-search" placeholder="Cari kategori…">
+              <button class="export-btn" id="abo-export" style="font-family:'Inter';font-size:12px;font-weight:600;color:var(--brand-2);background:#fff;border:1px solid var(--border);border-radius:8px;padding:7px 12px;cursor:pointer;">Unduh CSV</button>
+            </div>
+            <div class="table-scroll" style="max-height:460px;overflow-y:auto;"><table>
+              <thead><tr>
+                <th data-key="name">Kategori<span class="sort-arrow"></span></th>
+                <th data-key="amount">Nilai (USD)<span class="sort-arrow"></span></th>
+                <th data-key="pct">% Total<span class="sort-arrow"></span></th>
+              </tr></thead>
+              <tbody id="abo-tbody"></tbody>
+            </table></div>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top:16px;">
+          <div class="panel-title">Waterfall — Komposisi COGS vs Beban Usaha</div>
+          <div class="panel-sub">Kontribusi tiap CE Komut terhadap total biaya pada scope filter saat ini</div>
+          <div class="waterfall-legend">
+            <span><span class="legend-dot" style="background:#0B6E4F"></span>COGS</span>
+            <span><span class="legend-dot" style="background:#114B7A"></span>Beban Usaha</span>
+            <span><span class="legend-dot" style="background:#B4720A"></span>Total</span>
+          </div>
+          <div class="chart-wrap" style="height:340px;"><canvas id="abo-waterfall-chart"></canvas></div>
+        </div>
+
+        <div class="chip-row" id="abo-chips" style="margin-top:16px;"></div>
+        <footer class="page-footer" id="abo-footer"></footer>
+      </section>
+
       <!-- ============ PAGE 6: UPDATE DATA (maintenance guide) ============ -->
       <section class="page" id="page-update">
         <header class="pagehead">
@@ -539,7 +650,7 @@ function setupSortableTable(theadSelector, renderFn, state){
 /* ============================================================
    PAGE ROUTING + MOBILE SIDEBAR
 ============================================================ */
-const pageTitles = {summary:'Summary P&L', seasonality:'Seasonality Bulanan', unitbisnis:'Per Unit Bisnis', cogs:'Komposisi COGS', variance:'Variance Analysis', update:'Update Data'};
+const pageTitles = {summary:'Summary P&L', seasonality:'Seasonality Bulanan', unitbisnis:'Per Unit Bisnis', cogs:'Komposisi COGS', variance:'Variance Analysis', abo:'Anggaran Biaya Operasional', update:'Update Data'};
 document.querySelectorAll('.sb-item').forEach(item=>{
   item.addEventListener('click',()=>{
     document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
@@ -584,6 +695,7 @@ async function boot(){
   try{
     MANIFEST = await loadJSON('data/periods/manifest.json');
     SEASONALITY = await loadJSON('data/seasonality_opsen.json');
+    ABO_CUBE = await loadJSON('data/abo/abo-cube.json');
     currentKey = MANIFEST.default || MANIFEST.periods[MANIFEST.periods.length-1].key;
 
     const select = document.getElementById('periodSelect');
@@ -603,6 +715,7 @@ async function boot(){
     initUnitBisnisPage(periodData);
     initCogsPage(periodData);
     initVariancePage(periodData);
+    initAboPage(ABO_CUBE, periodData.meta.monthIndex);
 
   }catch(err){
     document.getElementById('loadingState').style.display='none';
@@ -626,6 +739,8 @@ async function switchPeriod(key){
   initUnitBisnisPage(periodData);
   initCogsPage(periodData);
   initVariancePage(periodData);
+  aboState.bulanCutoff = periodData.meta.monthIndex + 1;
+  renderAboPage();
 }
 
 /* ============================================================
@@ -970,6 +1085,302 @@ function initVariancePage(json){
       <td>${fmtCurrency(s.rkap_revenue)}</td><td>${fmtCurrency(s.real_revenue)}</td>
       <td class="${s.pct_rev>=1?'var-good':'var-bad'}">${s.pct_rev!==null?(s.pct_rev*100).toFixed(1)+'%':'—'}</td></tr>`;
   }).join('');
+}
+
+/* ============================================================
+   PAGE: ANGGARAN BIAYA OPERASIONAL (ABO)
+============================================================ */
+let ABO_CUBE = null;
+let aboBarChart = null, aboWaterfallChart = null;
+const ABO_DIM_LABELS = {
+  region:'Mapping Region', direktorat:'Direktorat', cekomut:'CE Komut',
+  cesubkomut:'CE Subkomut', vp:'VP Pengusul'
+};
+const aboState = {
+  bulanCutoff: 6,
+  groupBy: 'region',
+  seg: { incexc:'include', cogsbu:'ALL', kk:'ALL' },
+  crossFilters: {},   // { dimKey: valueString }
+  search: '',
+  sortKey: 'amount', sortDir: 'desc',
+  tableRows: []       // cache untuk export CSV
+};
+
+function aboFilterRows(cube){
+  const idx = cube.colOrder;
+  const iBulan=idx.indexOf('bulan'), iIncexc=idx.indexOf('incexc'), iCogsbu=idx.indexOf('cogsbu'), iKk=idx.indexOf('kk');
+  const dimIdx = {}; Object.keys(ABO_DIM_LABELS).forEach(k=>dimIdx[k]=idx.indexOf(k));
+
+  return cube.rows.filter(r=>{
+    if(r[iBulan] > aboState.bulanCutoff) return false;
+    if(aboState.seg.incexc!=='ALL' && cube.dims.incexc[r[iIncexc]] !== aboState.seg.incexc) return false;
+    if(aboState.seg.cogsbu!=='ALL' && cube.dims.cogsbu[r[iCogsbu]] !== aboState.seg.cogsbu) return false;
+    if(aboState.seg.kk!=='ALL' && cube.dims.kk[r[iKk]] !== aboState.seg.kk) return false;
+    for(const [dimKey, val] of Object.entries(aboState.crossFilters)){
+      if(cube.dims[dimKey][r[dimIdx[dimKey]]] !== val) return false;
+    }
+    return true;
+  });
+}
+
+function aboAggregateBy(cube, rows, dimKey){
+  const idx = cube.colOrder;
+  const iAmount = idx.indexOf('amount'), iDim = idx.indexOf(dimKey);
+  const map = {};
+  rows.forEach(r=>{
+    const name = cube.dims[dimKey][r[iDim]];
+    map[name] = (map[name]||0) + r[iAmount];
+  });
+  return Object.entries(map).map(([name,amount])=>({name, amount})).sort((a,b)=>b.amount-a.amount);
+}
+
+function aboSegPill(segId){
+  const wrap = document.getElementById(segId);
+  const pill = wrap.querySelector('.pill');
+  const activeBtn = wrap.querySelector('button.active') || wrap.querySelector('button');
+  if(!activeBtn) return;
+  pill.style.width = activeBtn.offsetWidth+'px';
+  pill.style.left = activeBtn.offsetLeft+'px';
+}
+
+function renderAboFilterTags(){
+  const wrap = document.getElementById('abo-filter-tags');
+  const tags = Object.entries(aboState.crossFilters).map(([dimKey,val])=>
+    `<span class="filter-tag">${ABO_DIM_LABELS[dimKey]}: ${val}<button data-dim="${dimKey}">✕</button></span>`
+  );
+  if(tags.length){
+    tags.push(`<button class="filter-tag-clear" id="abo-clear-all">Reset semua filter</button>`);
+  }
+  wrap.innerHTML = tags.join('');
+  wrap.querySelectorAll('button[data-dim]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ delete aboState.crossFilters[btn.dataset.dim]; renderAboPage(); });
+  });
+  const clearBtn = document.getElementById('abo-clear-all');
+  if(clearBtn) clearBtn.addEventListener('click', ()=>{ aboState.crossFilters = {}; renderAboPage(); });
+}
+
+function renderAboKPI(cube){
+  const idx = cube.colOrder;
+  const iAmount = idx.indexOf('amount'), iCogsbu = idx.indexOf('cogsbu'), iIncexc = idx.indexOf('incexc');
+  const allInScope = aboFilterRows(cube); // sudah termasuk filter incexc/cogsbu/kk/cross
+  // KPI selalu tampil Total Include vs Exclude vs COGS vs Beban Usaha TANPA filter incexc/cogsbu (biar informatif), tapi tetap ikut bulanCutoff + cross filter
+  const savedSeg = {...aboState.seg};
+  aboState.seg = {incexc:'ALL', cogsbu:'ALL', kk:aboState.seg.kk};
+  const scopeRows = aboFilterRows(cube);
+  aboState.seg = savedSeg;
+
+  let totalInclude=0, totalExclude=0, totalCogs=0, totalBU=0;
+  scopeRows.forEach(r=>{
+    const inc = cube.dims.incexc[r[iIncexc]];
+    const cb = cube.dims.cogsbu[r[iCogsbu]];
+    if(inc==='include'){ totalInclude += r[iAmount]; if(cb==='COGS') totalCogs+=r[iAmount]; else totalBU+=r[iAmount]; }
+    else { totalExclude += r[iAmount]; }
+  });
+
+  const cards = [
+    {label:'Total Include (Ytd)', value: totalInclude},
+    {label:'COGS', value: totalCogs},
+    {label:'Beban Usaha', value: totalBU},
+    {label:'Total Exclude', value: totalExclude},
+  ];
+  document.getElementById('abo-kpi').innerHTML = cards.map(c=>`
+    <div class="kpi">
+      <div class="kpi-name">${c.label}</div>
+      <div class="kpi-value">${fmtCurrency(c.value/1000000)} Jt</div>
+    </div>`).join('');
+}
+
+function renderAboBarChart(cube){
+  const rows = aboFilterRows(cube);
+  let agg = aboAggregateBy(cube, rows, aboState.groupBy);
+  if(aboState.search.trim()){
+    const q = aboState.search.trim().toLowerCase();
+    agg = agg.filter(r=>r.name.toLowerCase().includes(q));
+  }
+  aboState.tableRows = agg;
+
+  const total = agg.reduce((s,r)=>s+r.amount,0) || 1;
+  const TOP_N = 20;
+  const shown = agg.slice(0, TOP_N);
+  const others = agg.slice(TOP_N).reduce((s,r)=>s+r.amount,0);
+  const labels = shown.map(r=>r.name);
+  const values = shown.map(r=>r.amount/1000000);
+  if(others > 0){ labels.push(`Lainnya (${agg.length-TOP_N} kategori)`); values.push(others/1000000); }
+
+  document.getElementById('abo-bar-hint').textContent =
+    agg.length > TOP_N ? `Menampilkan Top ${TOP_N} dari ${agg.length} kategori (klik bar untuk menyaring)` : `${agg.length} kategori · klik bar untuk menyaring`;
+
+  const canvas = document.getElementById('abo-bar-chart');
+  canvas.parentElement.style.height = Math.max(320, labels.length*26) + 'px';
+  if(aboBarChart) aboBarChart.destroy();
+  const ctx = canvas.getContext('2d');
+  aboBarChart = new Chart(ctx,{type:'bar',
+    data:{labels, datasets:[{data:values, backgroundColor:'#114B7A', borderRadius:4, barThickness:16, hoverBackgroundColor:'#0B6E4F'}]},
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:(c)=>fmtCurrency(c.parsed.x)+' Jt USD'}}},
+      scales:{
+        x:{grid:{color:'#EDEFF3'}, ticks:{font:{family:'IBM Plex Mono',size:10.5}}},
+        y:{grid:{display:false}, ticks:{font:{family:'Inter',size:11}, autoSkip:false}}
+      },
+      onClick: (evt, elements)=>{
+        if(!elements.length) return;
+        const i = elements[0].index;
+        if(i >= shown.length) return; // klik "Lainnya" tidak bisa difilter
+        aboState.crossFilters[aboState.groupBy] = shown[i].name;
+        renderAboPage();
+      }
+    }
+  });
+
+  renderAboTable(agg, total);
+}
+
+function renderAboTable(agg, total){
+  const sorted = [...agg];
+  sorted.sort((a,b)=>{
+    let av = aboState.sortKey==='name'? a.name : (aboState.sortKey==='pct'? a.amount/total : a.amount);
+    let bv = aboState.sortKey==='name'? b.name : (aboState.sortKey==='pct'? b.amount/total : b.amount);
+    if(typeof av==='string') return aboState.sortDir==='asc'? av.localeCompare(bv) : bv.localeCompare(av);
+    return aboState.sortDir==='asc'? av-bv : bv-av;
+  });
+  document.getElementById('abo-tbody').innerHTML = sorted.map(r=>`
+    <tr data-name="${r.name}" style="cursor:pointer;">
+      <td>${r.name}</td>
+      <td>${fmtCurrency(r.amount/1000000)} Jt</td>
+      <td>${(r.amount/total*100).toFixed(1)}%</td>
+    </tr>`).join('');
+  document.querySelectorAll('#abo-tbody tr').forEach(tr=>{
+    tr.addEventListener('click', ()=>{
+      aboState.crossFilters[aboState.groupBy] = tr.dataset.name;
+      renderAboPage();
+    });
+  });
+}
+
+function renderAboWaterfall(cube){
+  const savedSeg = {...aboState.seg};
+  aboState.seg = {...aboState.seg, cogsbu:'ALL'};
+  const rows = aboFilterRows(cube);
+  aboState.seg = savedSeg;
+
+  const idx = cube.colOrder;
+  const iAmount=idx.indexOf('amount'), iCogsbu=idx.indexOf('cogsbu'), iCekomut=idx.indexOf('cekomut');
+  const map = {};
+  rows.forEach(r=>{
+    const cb = cube.dims.cogsbu[r[iCogsbu]];
+    const kom = cube.dims.cekomut[r[iCekomut]];
+    const key = kom;
+    if(!map[key]) map[key] = {name:kom, cogs:0, bu:0};
+    if(cb==='COGS') map[key].cogs += r[iAmount]; else map[key].bu += r[iAmount];
+  });
+  const items = Object.values(map).sort((a,b)=>(b.cogs+b.bu)-(a.cogs+a.bu)).slice(0,12);
+
+  let running = 0;
+  const labels = [], data = [], colors = [];
+  items.forEach(it=>{
+    const val = it.cogs + it.bu;
+    data.push([running, running+val]);
+    labels.push(it.name);
+    colors.push(it.cogs > it.bu ? '#0B6E4F' : '#114B7A');
+    running += val;
+  });
+  labels.push('Total');
+  data.push([0, running]);
+  colors.push('#B4720A');
+
+  if(aboWaterfallChart) aboWaterfallChart.destroy();
+  const ctx = document.getElementById('abo-waterfall-chart').getContext('2d');
+  aboWaterfallChart = new Chart(ctx,{type:'bar',
+    data:{labels, datasets:[{data, backgroundColor:colors, borderRadius:3, barThickness:22}]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:(c)=>fmtCurrency((c.raw[1]-c.raw[0])/1000000)+' Jt USD'}}},
+      scales:{
+        x:{grid:{display:false}, ticks:{font:{family:'Inter',size:10.5}, maxRotation:45, minRotation:45}},
+        y:{grid:{color:'#EDEFF3'}, ticks:{font:{family:'IBM Plex Mono',size:10}}}
+      }
+    }
+  });
+}
+
+function renderAboChips(cube){
+  const rows = aboFilterRows(cube);
+  const idx = cube.colOrder;
+  const iAmount=idx.indexOf('amount'), iKk=idx.indexOf('kk');
+  const byKk = {};
+  rows.forEach(r=>{ const k=cube.dims.kk[r[iKk]]; byKk[k]=(byKk[k]||0)+r[iAmount]; });
+  const total = rows.reduce((s,r)=>s+r[iAmount],0) || 1;
+  document.getElementById('abo-chips').innerHTML = Object.entries(byKk).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`
+    <div class="chip">
+      <div class="chip-label">KK Report ${k}</div>
+      <div class="chip-values"><span class="chip-real">${fmtCurrency(v/1000000)} Jt</span><span class="chip-basis">${(v/total*100).toFixed(1)}%</span></div>
+    </div>`).join('');
+}
+
+function renderAboPage(){
+  if(!ABO_CUBE) return;
+  renderAboFilterTags();
+  renderAboKPI(ABO_CUBE);
+  renderAboBarChart(ABO_CUBE);
+  renderAboWaterfall(ABO_CUBE);
+  renderAboChips(ABO_CUBE);
+  document.getElementById('abo-footer').innerHTML =
+    `Sumber: ${ABO_CUBE.meta.source}. Data Ytd s.d. bulan ke-${aboState.bulanCutoff} (2026), digabung dari FBL3N + EXTRACOMP. Nilai dalam Juta USD.`;
+}
+
+function initAboPage(cube, monthIndex){
+  ABO_CUBE = cube;
+  aboState.bulanCutoff = monthIndex + 1; // monthIndex 0-based (Jan=0) -> Bulan 1-based
+  aboState.crossFilters = {};
+
+  ['abo-seg-incexc','abo-seg-cogsbu','abo-seg-kk'].forEach((segId, i)=>{
+    const key = ['incexc','cogsbu','kk'][i];
+    const wrap = document.getElementById(segId);
+    wrap.querySelectorAll('button').forEach(btn=>{
+      btn.classList.toggle('active', btn.dataset.val === aboState.seg[key]);
+      btn.onclick = ()=>{
+        aboState.seg[key] = btn.dataset.val;
+        wrap.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        aboSegPill(segId);
+        renderAboPage();
+      };
+    });
+    requestAnimationFrame(()=>aboSegPill(segId));
+  });
+
+  const groupSel = document.getElementById('abo-groupby');
+  groupSel.value = aboState.groupBy;
+  groupSel.onchange = ()=>{ aboState.groupBy = groupSel.value; renderAboPage(); };
+
+  const searchInput = document.getElementById('abo-search');
+  searchInput.value = '';
+  searchInput.oninput = (e)=>{ aboState.search = e.target.value; renderAboBarChart(ABO_CUBE); };
+
+  document.querySelectorAll('#page-abo thead th').forEach(th=>{
+    th.onclick = ()=>{
+      const key = th.dataset.key;
+      if(aboState.sortKey===key) aboState.sortDir = aboState.sortDir==='asc'?'desc':'asc';
+      else { aboState.sortKey=key; aboState.sortDir = key==='name'?'asc':'desc'; }
+      renderAboTable(aboState.tableRows, aboState.tableRows.reduce((s,r)=>s+r.amount,0) || 1);
+    };
+  });
+
+  document.getElementById('abo-export').onclick = ()=>{
+    const rows = aboState.tableRows;
+    const total = rows.reduce((s,r)=>s+r.amount,0) || 1;
+    const csv = ['Kategori,Nilai (USD),Persen'].concat(
+      rows.map(r=>`"${r.name}",${r.amount.toFixed(2)},${(r.amount/total*100).toFixed(2)}%`)
+    ).join('\n');
+    const blob = new Blob([csv], {type:'text/csv'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `abo_${ABO_DIM_LABELS[aboState.groupBy].replace(/\s/g,'_')}.csv`;
+    a.click();
+  };
+
+  renderAboPage();
 }
 
 boot();
