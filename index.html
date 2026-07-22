@@ -471,15 +471,6 @@
 
         <div class="abo-toolbar">
           <div class="abo-filter-group">
-            <div class="toggle-label">Include / Exclude</div>
-            <div class="segmented" id="abo-seg-incexc">
-              <div class="pill"></div>
-              <button data-val="include">Include</button>
-              <button data-val="ALL">Semua</button>
-              <button data-val="Exclude">Exclude</button>
-            </div>
-          </div>
-          <div class="abo-filter-group">
             <div class="toggle-label">COGS / Beban Usaha</div>
             <div class="segmented" id="abo-seg-cogsbu">
               <div class="pill"></div>
@@ -498,6 +489,14 @@
               <button data-val="C8">C8</button>
             </div>
           </div>
+          <div class="abo-filter-group">
+            <div class="toggle-label">CE Komut</div>
+            <select class="dropdown" id="abo-filter-cekomut"><option value="ALL">Semua CE Komut</option></select>
+          </div>
+          <div class="abo-filter-group">
+            <div class="toggle-label">CE Subkomut</div>
+            <select class="dropdown" id="abo-filter-cesubkomut"><option value="ALL">Semua CE Subkomut</option></select>
+          </div>
         </div>
 
         <div class="filter-tag-row" id="abo-filter-tags"></div>
@@ -511,8 +510,6 @@
             <select class="dropdown" id="abo-groupby" style="margin-bottom:12px;">
               <option value="region">Mapping Region</option>
               <option value="direktorat">Direktorat</option>
-              <option value="cekomut">CE Komut</option>
-              <option value="cesubkomut">CE Subkomut</option>
               <option value="vp">VP Pengusul</option>
             </select>
             <div class="abo-hint" id="abo-bar-hint"></div>
@@ -520,7 +517,7 @@
           </div>
           <div class="panel">
             <div class="panel-title">Rincian</div>
-            <div class="panel-sub">Klik baris untuk menyaring · klik header untuk urutkan</div>
+            <div class="panel-sub">Klik baris untuk menyaring (drill-down CE Komut/Subkomut) · klik header untuk urutkan</div>
             <div class="table-tools">
               <input class="search-input" id="abo-search" placeholder="Cari kategori…">
               <button class="export-btn" id="abo-export" style="font-family:'Inter';font-size:12px;font-weight:600;color:var(--brand-2);background:#fff;border:1px solid var(--border);border-radius:8px;padding:7px 12px;cursor:pointer;">Unduh CSV</button>
@@ -529,10 +526,30 @@
               <thead><tr>
                 <th data-key="name">Kategori<span class="sort-arrow"></span></th>
                 <th data-key="amount">Nilai (USD)<span class="sort-arrow"></span></th>
-                <th data-key="pct">% Total<span class="sort-arrow"></span></th>
               </tr></thead>
               <tbody id="abo-tbody"></tbody>
             </table></div>
+          </div>
+        </div>
+
+        <div class="panel" id="abo-drilldown-panel" style="margin-top:16px; display:none;">
+          <div class="panel-title">Drill-down CE Komut &amp; CE Subkomut</div>
+          <div class="panel-sub" id="abo-drilldown-sub">Rincian dalam scope filter saat ini</div>
+          <div class="main-grid" style="margin-top:12px;">
+            <div>
+              <div class="abo-groupby-label">CE Komut</div>
+              <div class="table-scroll" style="max-height:320px;overflow-y:auto;"><table>
+                <thead><tr><th>Kategori</th><th>Nilai (USD)</th><th>% Total</th></tr></thead>
+                <tbody id="abo-drill-komut-tbody"></tbody>
+              </table></div>
+            </div>
+            <div>
+              <div class="abo-groupby-label">CE Subkomut</div>
+              <div class="table-scroll" style="max-height:320px;overflow-y:auto;"><table>
+                <thead><tr><th>Kategori</th><th>Nilai (USD)</th><th>% Total</th></tr></thead>
+                <tbody id="abo-drill-subkomut-tbody"></tbody>
+              </table></div>
+            </div>
           </div>
         </div>
 
@@ -891,23 +908,94 @@ function initSeasonalityPage(json, monthIndex){
     const line = lines[name];
     document.getElementById('seas-title').textContent = `${name} — Pola Bulanan RKAP 2026`;
 
-    const ctx = document.getElementById('seas-chart').getContext('2d');
+    const canvas = document.getElementById('seas-chart');
+    const ctx = canvas.getContext('2d');
     const fmt = line.unit==='percent' ? (v)=>fmtPercent(v) : (v)=>fmtCurrency(v)+' Jt';
+
+    const values = line.values;
+    const maxVal = Math.max(...values), minVal = Math.min(...values);
+    const maxIdx = values.indexOf(maxVal), minIdx = values.indexOf(minVal);
+
+    const gradient = ctx.createLinearGradient(0, 0, 0, 280);
+    gradient.addColorStop(0, 'rgba(17,75,122,0.28)');
+    gradient.addColorStop(1, 'rgba(17,75,122,0.02)');
+
+    const pointColors = months.map((m,i)=>{
+      if(i===seasCurrentMonthIndex) return '#C1392B';
+      if(i===maxIdx) return '#0B6E4F';
+      if(i===minIdx) return '#B4720A';
+      return '#114B7A';
+    });
+    const pointRadii = months.map((m,i)=> i===seasCurrentMonthIndex ? 8 : (i===maxIdx||i===minIdx ? 6 : 4));
+
     if(seasChart) seasChart.destroy();
+
+    const highlightPlugin = {
+      id:'seasHighlight',
+      afterDatasetsDraw(chart){
+        const {ctx, chartArea, scales} = chart;
+        const meta = chart.getDatasetMeta(0);
+        const pt = meta.data[seasCurrentMonthIndex];
+        if(!pt) return;
+        ctx.save();
+        ctx.setLineDash([4,4]);
+        ctx.strokeStyle = 'rgba(193,57,43,0.45)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(pt.x, pt.y);
+        ctx.lineTo(pt.x, chartArea.bottom);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        const label = fmt(values[seasCurrentMonthIndex]);
+        ctx.font = '700 12px IBM Plex Mono, monospace';
+        const textW = ctx.measureText(label).width;
+        const boxW = textW+16, boxH = 24;
+        let boxX = pt.x - boxW/2, boxY = pt.y - boxH - 14;
+        boxX = Math.max(chartArea.left+2, Math.min(boxX, chartArea.right-boxW-2));
+        if(boxY < chartArea.top) boxY = pt.y + 14;
+
+        ctx.fillStyle = '#C1392B';
+        ctx.beginPath();
+        if(ctx.roundRect) ctx.roundRect(boxX, boxY, boxW, boxH, 6);
+        else ctx.rect(boxX, boxY, boxW, boxH);
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, boxX+boxW/2, boxY+boxH/2+1);
+        ctx.restore();
+      }
+    };
+
     seasChart = new Chart(ctx,{
       type:'line',
       data:{labels:months, datasets:[{
-        label:name, data:line.values, borderColor:'#114B7A', backgroundColor:'rgba(17,75,122,0.08)',
-        fill:true, tension:.35, pointRadius:4, pointBackgroundColor: months.map((m,i)=> i===seasCurrentMonthIndex ? '#C1392B' : '#114B7A'),
-        pointBorderColor:'#fff', pointBorderWidth:1.5, pointHoverRadius:6,
+        label:name, data:values, borderColor:'#114B7A', backgroundColor:gradient,
+        fill:true, tension:.4, borderWidth:3,
+        pointRadius:pointRadii, pointBackgroundColor:pointColors,
+        pointBorderColor:'#fff', pointBorderWidth:2, pointHoverRadius:9, pointHoverBorderWidth:2.5,
       }]},
       options:{responsive:true, maintainAspectRatio:false,
-        plugins:{legend:{display:false}, tooltip:{callbacks:{label:(c)=>fmt(c.parsed.y)}}},
+        animation:{duration:700, easing:'easeOutQuart'},
+        plugins:{
+          legend:{display:false},
+          tooltip:{
+            backgroundColor:'#0E1A2B', titleColor:'#fff', bodyColor:'#E7EFF4',
+            titleFont:{family:'Inter', weight:'700', size:12.5}, bodyFont:{family:'IBM Plex Mono', size:12},
+            padding:10, cornerRadius:8, displayColors:false,
+            callbacks:{
+              title:(items)=>items[0].label,
+              label:(c)=> (c.dataIndex===maxIdx?'▲ Tertinggi · ':c.dataIndex===minIdx?'▼ Terendah · ':'') + fmt(c.parsed.y)
+            }
+          }
+        },
         scales:{
           y:{grid:{color:'#EDEFF3'}, ticks:{font:{family:'IBM Plex Mono',size:10.5}, callback:(v)=> line.unit==='percent'?(v*100).toFixed(0)+'%':v.toLocaleString('en-US')}},
           x:{grid:{display:false}, ticks:{font:{family:'Inter',size:11.5}}}
         }
-      }
+      },
+      plugins:[highlightPlugin]
     });
 
     const thead = document.getElementById('seas-thead-row');
@@ -920,13 +1008,11 @@ function initSeasonalityPage(json, monthIndex){
   }
   select.onchange = render;
   render();
+  window._seasRenderFn = render;
 }
 function updateSeasonalityMarker(monthIndex){
   seasCurrentMonthIndex = monthIndex;
-  if(seasChart){
-    seasChart.data.datasets[0].pointBackgroundColor = seasChart.data.labels.map((m,i)=> i===monthIndex ? '#C1392B' : '#114B7A');
-    seasChart.update();
-  }
+  if(window._seasRenderFn) window._seasRenderFn();
 }
 
 /* ============================================================
@@ -1099,8 +1185,9 @@ const ABO_DIM_LABELS = {
 const aboState = {
   bulanCutoff: 6,
   groupBy: 'region',
-  seg: { incexc:'include', cogsbu:'ALL', kk:'ALL' },
-  crossFilters: {},   // { dimKey: valueString }
+  seg: { cogsbu:'ALL', kk:'ALL' },
+  filterCekomut: 'ALL', filterCesubkomut: 'ALL',
+  crossFilters: {},   // { dimKey: valueString } -- hanya dari klik region/direktorat/vp
   search: '',
   sortKey: 'amount', sortDir: 'desc',
   tableRows: []       // cache untuk export CSV
@@ -1109,13 +1196,16 @@ const aboState = {
 function aboFilterRows(cube){
   const idx = cube.colOrder;
   const iBulan=idx.indexOf('bulan'), iIncexc=idx.indexOf('incexc'), iCogsbu=idx.indexOf('cogsbu'), iKk=idx.indexOf('kk');
+  const iCekomut=idx.indexOf('cekomut'), iCesubkomut=idx.indexOf('cesubkomut');
   const dimIdx = {}; Object.keys(ABO_DIM_LABELS).forEach(k=>dimIdx[k]=idx.indexOf(k));
 
   return cube.rows.filter(r=>{
     if(r[iBulan] > aboState.bulanCutoff) return false;
-    if(aboState.seg.incexc!=='ALL' && cube.dims.incexc[r[iIncexc]] !== aboState.seg.incexc) return false;
+    if(cube.dims.incexc[r[iIncexc]] !== 'include') return false; // selalu Include -- basis standar pelaporan
     if(aboState.seg.cogsbu!=='ALL' && cube.dims.cogsbu[r[iCogsbu]] !== aboState.seg.cogsbu) return false;
     if(aboState.seg.kk!=='ALL' && cube.dims.kk[r[iKk]] !== aboState.seg.kk) return false;
+    if(aboState.filterCekomut!=='ALL' && cube.dims.cekomut[r[iCekomut]] !== aboState.filterCekomut) return false;
+    if(aboState.filterCesubkomut!=='ALL' && cube.dims.cesubkomut[r[iCesubkomut]] !== aboState.filterCesubkomut) return false;
     for(const [dimKey, val] of Object.entries(aboState.crossFilters)){
       if(cube.dims[dimKey][r[dimIdx[dimKey]]] !== val) return false;
     }
@@ -1239,8 +1329,8 @@ function renderAboBarChart(cube){
 function renderAboTable(agg, total){
   const sorted = [...agg];
   sorted.sort((a,b)=>{
-    let av = aboState.sortKey==='name'? a.name : (aboState.sortKey==='pct'? a.amount/total : a.amount);
-    let bv = aboState.sortKey==='name'? b.name : (aboState.sortKey==='pct'? b.amount/total : b.amount);
+    let av = aboState.sortKey==='name'? a.name : a.amount;
+    let bv = aboState.sortKey==='name'? b.name : b.amount;
     if(typeof av==='string') return aboState.sortDir==='asc'? av.localeCompare(bv) : bv.localeCompare(av);
     return aboState.sortDir==='asc'? av-bv : bv-av;
   });
@@ -1248,7 +1338,6 @@ function renderAboTable(agg, total){
     <tr data-name="${r.name}" style="cursor:pointer;">
       <td>${r.name}</td>
       <td>${fmtCurrency(r.amount/1000000)} Jt</td>
-      <td>${(r.amount/total*100).toFixed(1)}%</td>
     </tr>`).join('');
   document.querySelectorAll('#abo-tbody tr').forEach(tr=>{
     tr.addEventListener('click', ()=>{
@@ -1318,11 +1407,39 @@ function renderAboChips(cube){
     </div>`).join('');
 }
 
+function renderAboDrilldown(cube){
+  const panel = document.getElementById('abo-drilldown-panel');
+  const rows = aboFilterRows(cube);
+  const hasCrossFilter = Object.keys(aboState.crossFilters).length > 0;
+
+  if(!hasCrossFilter){
+    panel.style.display = 'none';
+    return;
+  }
+  panel.style.display = '';
+
+  const scopeDesc = Object.entries(aboState.crossFilters).map(([k,v])=>`${ABO_DIM_LABELS[k]}: ${v}`).join(' · ');
+  document.getElementById('abo-drilldown-sub').textContent = `Rincian dalam scope: ${scopeDesc}`;
+
+  const total = rows.reduce((s,r)=>s+r[cube.colOrder.indexOf('amount')],0) || 1;
+  const komutAgg = aboAggregateBy(cube, rows, 'cekomut');
+  const subAgg = aboAggregateBy(cube, rows, 'cesubkomut');
+
+  const renderMini = (agg, tbodyId)=>{
+    document.getElementById(tbodyId).innerHTML = agg.map(r=>`
+      <tr><td>${r.name}</td><td>${fmtCurrency(r.amount/1000000)} Jt</td><td>${(r.amount/total*100).toFixed(1)}%</td></tr>
+    `).join('');
+  };
+  renderMini(komutAgg, 'abo-drill-komut-tbody');
+  renderMini(subAgg, 'abo-drill-subkomut-tbody');
+}
+
 function renderAboPage(){
   if(!ABO_CUBE) return;
   renderAboFilterTags();
   renderAboKPI(ABO_CUBE);
   renderAboBarChart(ABO_CUBE);
+  renderAboDrilldown(ABO_CUBE);
   renderAboWaterfall(ABO_CUBE);
   renderAboChips(ABO_CUBE);
   document.getElementById('abo-footer').innerHTML =
@@ -1334,8 +1451,8 @@ function initAboPage(cube, monthIndex){
   aboState.bulanCutoff = monthIndex + 1; // monthIndex 0-based (Jan=0) -> Bulan 1-based
   aboState.crossFilters = {};
 
-  ['abo-seg-incexc','abo-seg-cogsbu','abo-seg-kk'].forEach((segId, i)=>{
-    const key = ['incexc','cogsbu','kk'][i];
+  ['abo-seg-cogsbu','abo-seg-kk'].forEach((segId, i)=>{
+    const key = ['cogsbu','kk'][i];
     const wrap = document.getElementById(segId);
     wrap.querySelectorAll('button').forEach(btn=>{
       btn.classList.toggle('active', btn.dataset.val === aboState.seg[key]);
@@ -1350,15 +1467,40 @@ function initAboPage(cube, monthIndex){
     requestAnimationFrame(()=>aboSegPill(segId));
   });
 
+  // Dropdown CE Komut (independen) + CE Subkomut (dependen pada CE Komut terpilih)
+  const cekomutSel = document.getElementById('abo-filter-cekomut');
+  const cesubkomutSel = document.getElementById('abo-filter-cesubkomut');
+  cekomutSel.innerHTML = '<option value="ALL">Semua CE Komut</option>' +
+    cube.dims.cekomut.map(v=>`<option value="${v}">${v}</option>`).join('');
+  function refreshSubkomutOptions(){
+    const selectedKomut = cekomutSel.value;
+    const options = selectedKomut==='ALL'
+      ? cube.dims.cesubkomut
+      : (cube.komutToSubkomut[selectedKomut] || []);
+    cesubkomutSel.innerHTML = '<option value="ALL">Semua CE Subkomut</option>' +
+      options.map(v=>`<option value="${v}">${v}</option>`).join('');
+  }
+  refreshSubkomutOptions();
+  cekomutSel.onchange = ()=>{
+    aboState.filterCekomut = cekomutSel.value;
+    aboState.filterCesubkomut = 'ALL';
+    refreshSubkomutOptions();
+    renderAboPage();
+  };
+  cesubkomutSel.onchange = ()=>{
+    aboState.filterCesubkomut = cesubkomutSel.value;
+    renderAboPage();
+  };
+
   const groupSel = document.getElementById('abo-groupby');
   groupSel.value = aboState.groupBy;
-  groupSel.onchange = ()=>{ aboState.groupBy = groupSel.value; renderAboPage(); };
+  groupSel.onchange = ()=>{ aboState.groupBy = groupSel.value; aboState.crossFilters = {}; renderAboPage(); };
 
   const searchInput = document.getElementById('abo-search');
   searchInput.value = '';
   searchInput.oninput = (e)=>{ aboState.search = e.target.value; renderAboBarChart(ABO_CUBE); };
 
-  document.querySelectorAll('#page-abo thead th').forEach(th=>{
+  document.querySelectorAll('#page-abo thead th[data-key]').forEach(th=>{
     th.onclick = ()=>{
       const key = th.dataset.key;
       if(aboState.sortKey===key) aboState.sortDir = aboState.sortDir==='asc'?'desc':'asc';
