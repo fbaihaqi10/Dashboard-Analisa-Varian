@@ -1249,15 +1249,30 @@ function renderAboFilterTags(){
   if(clearBtn) clearBtn.addEventListener('click', ()=>{ aboState.crossFilters = {}; renderAboPage(); });
 }
 
+function aboFilterRowsForKPI(cube){
+  // Sama seperti aboFilterRows, TAPI tidak memaksa Include-only dan tidak ikut filter COGS/BU --
+  // supaya KPI bisa menghitung split Include vs Exclude dan COGS vs Beban Usaha secara utuh.
+  const idx = cube.colOrder;
+  const iBulan=idx.indexOf('bulan'), iKk=idx.indexOf('kk');
+  const iCekomut=idx.indexOf('cekomut'), iCesubkomut=idx.indexOf('cesubkomut');
+  const dimIdx = {}; Object.keys(ABO_DIM_LABELS).forEach(k=>dimIdx[k]=idx.indexOf(k));
+
+  return cube.rows.filter(r=>{
+    if(r[iBulan] > aboState.bulanCutoff) return false;
+    if(aboState.seg.kk!=='ALL' && cube.dims.kk[r[iKk]] !== aboState.seg.kk) return false;
+    if(aboState.filterCekomut!=='ALL' && cube.dims.cekomut[r[iCekomut]] !== aboState.filterCekomut) return false;
+    if(aboState.filterCesubkomut!=='ALL' && cube.dims.cesubkomut[r[iCesubkomut]] !== aboState.filterCesubkomut) return false;
+    for(const [dimKey, val] of Object.entries(aboState.crossFilters)){
+      if(cube.dims[dimKey][r[dimIdx[dimKey]]] !== val) return false;
+    }
+    return true;
+  });
+}
+
 function renderAboKPI(cube){
   const idx = cube.colOrder;
   const iAmount = idx.indexOf('amount'), iCogsbu = idx.indexOf('cogsbu'), iIncexc = idx.indexOf('incexc');
-  const allInScope = aboFilterRows(cube); // sudah termasuk filter incexc/cogsbu/kk/cross
-  // KPI selalu tampil Total Include vs Exclude vs COGS vs Beban Usaha TANPA filter incexc/cogsbu (biar informatif), tapi tetap ikut bulanCutoff + cross filter
-  const savedSeg = {...aboState.seg};
-  aboState.seg = {incexc:'ALL', cogsbu:'ALL', kk:aboState.seg.kk};
-  const scopeRows = aboFilterRows(cube);
-  aboState.seg = savedSeg;
+  const scopeRows = aboFilterRowsForKPI(cube);
 
   let totalInclude=0, totalExclude=0, totalCogs=0, totalBU=0;
   scopeRows.forEach(r=>{
@@ -1470,8 +1485,12 @@ function initAboPage(cube, monthIndex){
   // Dropdown CE Komut (independen) + CE Subkomut (dependen pada CE Komut terpilih)
   const cekomutSel = document.getElementById('abo-filter-cekomut');
   const cesubkomutSel = document.getElementById('abo-filter-cesubkomut');
+  cekomutSel.setAttribute('autocomplete','off');
+  cesubkomutSel.setAttribute('autocomplete','off');
   cekomutSel.innerHTML = '<option value="ALL">Semua CE Komut</option>' +
     cube.dims.cekomut.map(v=>`<option value="${v}">${v}</option>`).join('');
+  cekomutSel.value = 'ALL';
+  aboState.filterCekomut = 'ALL';
   function refreshSubkomutOptions(){
     const selectedKomut = cekomutSel.value;
     const options = selectedKomut==='ALL'
@@ -1479,8 +1498,10 @@ function initAboPage(cube, monthIndex){
       : (cube.komutToSubkomut[selectedKomut] || []);
     cesubkomutSel.innerHTML = '<option value="ALL">Semua CE Subkomut</option>' +
       options.map(v=>`<option value="${v}">${v}</option>`).join('');
+    cesubkomutSel.value = 'ALL';
   }
   refreshSubkomutOptions();
+  aboState.filterCesubkomut = 'ALL';
   cekomutSel.onchange = ()=>{
     aboState.filterCekomut = cekomutSel.value;
     aboState.filterCesubkomut = 'ALL';
