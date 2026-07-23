@@ -274,6 +274,41 @@
   }
   .abo-bar-scroll{max-height:460px; overflow-y:auto;}
   .waterfall-legend{display:flex; gap:16px; margin:10px 0 4px; font-size:12px; color:var(--muted); flex-wrap:wrap;}
+
+  /* ============ ABO SUB-TABS ============ */
+  .abo-subtabs{display:flex; gap:4px; margin-bottom:18px; border-bottom:1px solid var(--border); padding-bottom:0;}
+  .abo-subtab{
+    background:none; border:none; border-bottom:2.5px solid transparent; padding:10px 16px 12px;
+    font-family:'Inter'; font-size:13.5px; font-weight:600; color:var(--muted); cursor:pointer;
+    transition:color .15s ease, border-color .15s ease;
+  }
+  .abo-subtab:hover{color:var(--ink);}
+  .abo-subtab.active{color:var(--brand-2); border-bottom-color:var(--brand-2);}
+
+  /* ============ LEADERBOARD ============ */
+  .abo-leaderboard-list{display:flex; flex-direction:column; gap:8px;}
+  .lb-row{display:flex; align-items:center; gap:14px; padding:10px 12px; border-radius:10px; cursor:default;}
+  .lb-row:hover{background:#F7F9FC;}
+  .lb-rank{
+    width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono'; font-weight:700; font-size:12.5px; flex-shrink:0;
+    background:#EEF1F5; color:var(--muted);
+  }
+  .lb-row:nth-child(1) .lb-rank{background:linear-gradient(135deg,#F4D06F,#D4A017); color:#5C3D00;}
+  .lb-row:nth-child(2) .lb-rank{background:linear-gradient(135deg,#D9DEE6,#AEB8C4); color:#3A3F47;}
+  .lb-row:nth-child(3) .lb-rank{background:linear-gradient(135deg,#E3B08A,#B87A4C); color:#4A2C10;}
+  .lb-name{flex:1; min-width:0; font-size:13.5px; font-weight:600; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .lb-bar-track{flex:2; height:8px; border-radius:4px; background:#EEF1F5; overflow:hidden; min-width:80px;}
+  .lb-bar-fill{height:100%; border-radius:4px; background:linear-gradient(90deg,#114B7A,#0B6E4F);}
+  .lb-value{width:110px; text-align:right; font-family:'IBM Plex Mono'; font-size:12.5px; font-weight:700; flex-shrink:0;}
+  .lb-pct{width:56px; text-align:right; font-family:'IBM Plex Mono'; font-size:11.5px; color:var(--muted); flex-shrink:0;}
+
+  /* ============ COMPARE CARDS ============ */
+  .cmp-title{font-size:14px; font-weight:700; color:var(--brand-2); margin-bottom:14px;}
+  .cmp-metric{display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:13px;}
+  .cmp-metric:last-child{border-bottom:none;}
+  .cmp-metric .lbl{color:var(--muted);}
+  .cmp-metric .val{font-family:'IBM Plex Mono'; font-weight:700;}
 </style>
 </head>
 <body>
@@ -546,12 +581,20 @@
           </div>
         </header>
 
+        <div class="abo-subtabs" id="abo-subtabs">
+          <button class="abo-subtab active" data-tab="ringkasan">Ringkasan</button>
+          <button class="abo-subtab" data-tab="trend">Trend Bulanan</button>
+          <button class="abo-subtab" data-tab="leaderboard">Leaderboard</button>
+          <button class="abo-subtab" data-tab="compare">Perbandingan</button>
+        </div>
+
+        <div class="abo-tab-panel" id="abo-tab-ringkasan">
         <div class="abo-toolbar">
           <div class="abo-filter-group">
             <div class="toggle-label">COGS / Beban Usaha</div>
             <div class="segmented" id="abo-seg-cogsbu">
               <div class="pill"></div>
-              <button data-val="ALL">Semua</button>
+              <button data-val="ALL">ALL</button>
               <button data-val="COGS">COGS</button>
               <button data-val="Beban Usaha">Beban Usaha</button>
             </div>
@@ -560,7 +603,7 @@
             <div class="toggle-label">KK Report</div>
             <div class="segmented" id="abo-seg-kk">
               <div class="pill"></div>
-              <button data-val="ALL">Semua</button>
+              <button data-val="ALL">ALL</button>
               <button data-val="C6">C6</button>
               <button data-val="C7">C7</button>
               <button data-val="C8">C8</button>
@@ -568,11 +611,11 @@
           </div>
           <div class="abo-filter-group">
             <div class="toggle-label">CE Komut</div>
-            <select class="dropdown" id="abo-filter-cekomut"><option value="ALL">Semua CE Komut</option></select>
+            <select class="dropdown" id="abo-filter-cekomut"><option value="ALL">ALL CE Komut</option></select>
           </div>
           <div class="abo-filter-group">
             <div class="toggle-label">CE Subkomut</div>
-            <select class="dropdown" id="abo-filter-cesubkomut"><option value="ALL">Semua CE Subkomut</option></select>
+            <select class="dropdown" id="abo-filter-cesubkomut"><option value="ALL">ALL CE Subkomut</option></select>
           </div>
         </div>
 
@@ -642,6 +685,96 @@
         </div>
 
         <div class="chip-row" id="abo-chips" style="margin-top:16px;"></div>
+        </div><!-- /abo-tab-ringkasan -->
+
+        <!-- ===== TAB: TREND BULANAN ===== -->
+        <div class="abo-tab-panel" id="abo-tab-trend" style="display:none;">
+          <div class="abo-toolbar">
+            <div class="abo-filter-group">
+              <div class="toggle-label">Dimensi</div>
+              <select class="dropdown" id="trend-dim">
+                <option value="TOTAL">Total Keseluruhan</option>
+                <option value="region">Mapping Region</option>
+                <option value="direktorat">Direktorat</option>
+                <option value="cekomut">CE Komut</option>
+                <option value="vp">VP Pengusul</option>
+              </select>
+            </div>
+            <div class="abo-filter-group" id="trend-category-group" style="display:none;">
+              <div class="toggle-label">Kategori</div>
+              <select class="dropdown" id="trend-category"></select>
+            </div>
+          </div>
+          <div class="panel" style="margin-top:16px;">
+            <div class="panel-title" id="trend-title">Trend Bulanan — Total Keseluruhan</div>
+            <div class="panel-sub">Realisasi per bulan (bukan kumulatif Ytd) · COGS vs Beban Usaha</div>
+            <div class="chart-wrap" style="height:360px;"><canvas id="trend-chart"></canvas></div>
+          </div>
+        </div>
+
+        <!-- ===== TAB: LEADERBOARD ===== -->
+        <div class="abo-tab-panel" id="abo-tab-leaderboard" style="display:none;">
+          <div class="abo-toolbar">
+            <div class="abo-filter-group">
+              <div class="toggle-label">Ranking berdasarkan</div>
+              <select class="dropdown" id="lb-dim1">
+                <option value="direktorat">Direktorat</option>
+                <option value="region">Mapping Region</option>
+                <option value="cekomut">CE Komut</option>
+                <option value="cesubkomut">CE Subkomut</option>
+                <option value="vp">VP Pengusul</option>
+              </select>
+            </div>
+            <div class="abo-filter-group">
+              <div class="toggle-label">Kombinasikan dengan (opsional)</div>
+              <select class="dropdown" id="lb-dim2">
+                <option value="NONE">— Tidak dikombinasikan —</option>
+                <option value="region">Mapping Region</option>
+                <option value="direktorat">Direktorat</option>
+                <option value="cekomut">CE Komut</option>
+                <option value="cesubkomut">CE Subkomut</option>
+                <option value="vp">VP Pengusul</option>
+              </select>
+            </div>
+          </div>
+          <div class="panel" style="margin-top:16px;">
+            <div class="panel-title">Top 20 Pos Biaya Terbesar</div>
+            <div class="panel-sub" id="lb-sub">Peringkat berdasarkan nilai realisasi Ytd</div>
+            <div class="abo-leaderboard-list" id="lb-list"></div>
+          </div>
+        </div>
+
+        <!-- ===== TAB: PERBANDINGAN ===== -->
+        <div class="abo-tab-panel" id="abo-tab-compare" style="display:none;">
+          <div class="abo-toolbar">
+            <div class="abo-filter-group">
+              <div class="toggle-label">Dimensi Pembanding</div>
+              <select class="dropdown" id="cmp-dim">
+                <option value="region">Mapping Region</option>
+                <option value="direktorat">Direktorat</option>
+                <option value="vp">VP Pengusul</option>
+                <option value="cekomut">CE Komut</option>
+              </select>
+            </div>
+            <div class="abo-filter-group">
+              <div class="toggle-label">Item A</div>
+              <select class="dropdown" id="cmp-a"></select>
+            </div>
+            <div class="abo-filter-group">
+              <div class="toggle-label">Item B</div>
+              <select class="dropdown" id="cmp-b"></select>
+            </div>
+          </div>
+          <div class="main-grid" style="margin-top:16px;">
+            <div class="panel" id="cmp-card-a"></div>
+            <div class="panel" id="cmp-card-b"></div>
+          </div>
+          <div class="panel" style="margin-top:16px;">
+            <div class="panel-title">Perbandingan CE Komut — A vs B</div>
+            <div class="panel-sub">Kategori biaya yang paling membedakan A dan B</div>
+            <div class="chart-wrap" style="height:340px;"><canvas id="cmp-chart"></canvas></div>
+          </div>
+        </div>
         <footer class="page-footer" id="abo-footer"></footer>
       </section>
 
@@ -1564,7 +1697,7 @@ function initAboPage(cube, monthIndex){
   const cesubkomutSel = document.getElementById('abo-filter-cesubkomut');
   cekomutSel.setAttribute('autocomplete','off');
   cesubkomutSel.setAttribute('autocomplete','off');
-  cekomutSel.innerHTML = '<option value="ALL">Semua CE Komut</option>' +
+  cekomutSel.innerHTML = '<option value="ALL">ALL CE Komut</option>' +
     cube.dims.cekomut.map(v=>`<option value="${v}">${v}</option>`).join('');
   cekomutSel.value = 'ALL';
   aboState.filterCekomut = 'ALL';
@@ -1573,7 +1706,7 @@ function initAboPage(cube, monthIndex){
     const options = selectedKomut==='ALL'
       ? cube.dims.cesubkomut
       : (cube.komutToSubkomut[selectedKomut] || []);
-    cesubkomutSel.innerHTML = '<option value="ALL">Semua CE Subkomut</option>' +
+    cesubkomutSel.innerHTML = '<option value="ALL">ALL CE Subkomut</option>' +
       options.map(v=>`<option value="${v}">${v}</option>`).join('');
     cesubkomutSel.value = 'ALL';
   }
@@ -1621,6 +1754,238 @@ function initAboPage(cube, monthIndex){
   };
 
   renderAboPage();
+
+  // ---- Sub-tab switching ----
+  document.querySelectorAll('.abo-subtab').forEach(btn=>{
+    btn.onclick = ()=>{
+      document.querySelectorAll('.abo-subtab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.abo-tab-panel').forEach(p=>p.style.display='none');
+      const panel = document.getElementById('abo-tab-'+btn.dataset.tab);
+      panel.style.display = '';
+      if(btn.dataset.tab==='trend') initAboTrend(cube);
+      if(btn.dataset.tab==='leaderboard') initAboLeaderboard(cube);
+      if(btn.dataset.tab==='compare') initAboCompare(cube);
+    };
+  });
+}
+
+/* ============================================================
+   ABO SUB-TAB: TREND BULANAN
+============================================================ */
+let trendChart = null;
+function initAboTrend(cube){
+  const dimSel = document.getElementById('trend-dim');
+  const catGroup = document.getElementById('trend-category-group');
+  const catSel = document.getElementById('trend-category');
+
+  function refreshCategoryOptions(){
+    const dim = dimSel.value;
+    if(dim==='TOTAL'){ catGroup.style.display='none'; renderTrend(); return; }
+    catGroup.style.display='';
+    const idx = cube.colOrder;
+    const iDim = idx.indexOf(dim), iAmount = idx.indexOf('amount'), iIncexc = idx.indexOf('incexc');
+    const totals = {};
+    cube.rows.forEach(r=>{
+      if(cube.dims.incexc[r[iIncexc]]!=='include') return;
+      const name = cube.dims[dim][r[iDim]];
+      totals[name] = (totals[name]||0) + r[iAmount];
+    });
+    const sorted = Object.entries(totals).sort((a,b)=>b[1]-a[1]).map(([n])=>n);
+    catSel.innerHTML = sorted.map(n=>`<option value="${n}">${n}</option>`).join('');
+    renderTrend();
+  }
+
+  function renderTrend(){
+    const dim = dimSel.value;
+    const category = dim==='TOTAL' ? null : catSel.value;
+    const title = dim==='TOTAL' ? 'Total Keseluruhan' : `${ABO_DIM_LABELS[dim]}: ${category}`;
+    document.getElementById('trend-title').textContent = `Trend Bulanan — ${title}`;
+
+    const idx = cube.colOrder;
+    const iBulan=idx.indexOf('bulan'), iAmount=idx.indexOf('amount'), iCogsbu=idx.indexOf('cogsbu'), iIncexc=idx.indexOf('incexc');
+    const iDim = dim==='TOTAL' ? null : idx.indexOf(dim);
+
+    const monthsAvail = cube.meta.monthsAvailable;
+    const cogsByMonth = {}, buByMonth = {};
+    monthsAvail.forEach(m=>{ cogsByMonth[m]=0; buByMonth[m]=0; });
+
+    cube.rows.forEach(r=>{
+      if(cube.dims.incexc[r[iIncexc]]!=='include') return;
+      if(iDim!==null && cube.dims[dim][r[iDim]]!==category) return;
+      const m = r[iBulan];
+      const cb = cube.dims.cogsbu[r[iCogsbu]];
+      if(cb==='COGS') cogsByMonth[m]+=r[iAmount]; else buByMonth[m]+=r[iAmount];
+    });
+
+    const monthNames = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+    const labels = monthsAvail.map(m=>monthNames[m-1]);
+
+    if(trendChart) trendChart.destroy();
+    const ctx = document.getElementById('trend-chart').getContext('2d');
+    trendChart = new Chart(ctx,{type:'bar',
+      data:{labels, datasets:[
+        {label:'COGS', data:monthsAvail.map(m=>cogsByMonth[m]/1000000), backgroundColor:'#0B6E4F', borderRadius:4, stack:'s'},
+        {label:'Beban Usaha', data:monthsAvail.map(m=>buByMonth[m]/1000000), backgroundColor:'#114B7A', borderRadius:4, stack:'s'},
+      ]},
+      options:{responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{position:'top', align:'end', labels:{boxWidth:10, font:{family:'Inter',size:11.5}}},
+          tooltip:{callbacks:{label:(c)=>`${c.dataset.label}: ${fmtCurrency(c.parsed.y)} Jt USD`}}},
+        scales:{
+          x:{grid:{display:false}, ticks:{font:{family:'Inter',size:11.5}}},
+          y:{grid:{color:'#EDEFF3'}, ticks:{font:{family:'IBM Plex Mono',size:10.5}}, stacked:true},
+        }
+      }
+    });
+  }
+
+  dimSel.onchange = refreshCategoryOptions;
+  catSel.onchange = renderTrend;
+  refreshCategoryOptions();
+}
+
+/* ============================================================
+   ABO SUB-TAB: LEADERBOARD
+============================================================ */
+function initAboLeaderboard(cube){
+  const dim1Sel = document.getElementById('lb-dim1');
+  const dim2Sel = document.getElementById('lb-dim2');
+
+  function render(){
+    const dim1 = dim1Sel.value, dim2 = dim2Sel.value;
+    const idx = cube.colOrder;
+    const iAmount=idx.indexOf('amount'), iIncexc=idx.indexOf('incexc');
+    const iDim1 = idx.indexOf(dim1), iDim2 = dim2!=='NONE' ? idx.indexOf(dim2) : null;
+
+    const totals = {};
+    cube.rows.forEach(r=>{
+      if(cube.dims.incexc[r[iIncexc]]!=='include') return;
+      const name1 = cube.dims[dim1][r[iDim1]];
+      const key = iDim2!==null ? `${name1} — ${cube.dims[dim2][r[iDim2]]}` : name1;
+      totals[key] = (totals[key]||0) + r[iAmount];
+    });
+    const sorted = Object.entries(totals).sort((a,b)=>b[1]-a[1]).slice(0,20);
+    const grandTotal = Object.values(totals).reduce((s,v)=>s+v,0) || 1;
+    const maxVal = sorted[0]?.[1] || 1;
+
+    document.getElementById('lb-sub').textContent =
+      dim2!=='NONE' ? `Kombinasi ${ABO_DIM_LABELS[dim1]} × ${ABO_DIM_LABELS[dim2]}` : `Peringkat berdasarkan ${ABO_DIM_LABELS[dim1]}`;
+
+    document.getElementById('lb-list').innerHTML = sorted.map(([name,val],i)=>`
+      <div class="lb-row">
+        <div class="lb-rank">${i+1}</div>
+        <div class="lb-name" title="${name}">${name}</div>
+        <div class="lb-bar-track"><div class="lb-bar-fill" style="width:${(val/maxVal*100).toFixed(1)}%"></div></div>
+        <div class="lb-value">${fmtCurrency(val/1000000)} Jt</div>
+        <div class="lb-pct">${(val/grandTotal*100).toFixed(1)}%</div>
+      </div>`).join('');
+  }
+
+  dim1Sel.onchange = render;
+  dim2Sel.onchange = render;
+  render();
+}
+
+/* ============================================================
+   ABO SUB-TAB: PERBANDINGAN
+============================================================ */
+function initAboCompare(cube){
+  const dimSel = document.getElementById('cmp-dim');
+  const aSel = document.getElementById('cmp-a');
+  const bSel = document.getElementById('cmp-b');
+  let cmpChart = null;
+
+  function getTotalsByCategory(dim){
+    const idx = cube.colOrder;
+    const iAmount=idx.indexOf('amount'), iIncexc=idx.indexOf('incexc'), iDim=idx.indexOf(dim);
+    const totals = {};
+    cube.rows.forEach(r=>{
+      if(cube.dims.incexc[r[iIncexc]]!=='include') return;
+      const name = cube.dims[dim][r[iDim]];
+      totals[name] = (totals[name]||0) + r[iAmount];
+    });
+    return totals;
+  }
+
+  function refreshCategoryOptions(){
+    const dim = dimSel.value;
+    const totals = getTotalsByCategory(dim);
+    const sorted = Object.entries(totals).sort((a,b)=>b[1]-a[1]).map(([n])=>n);
+    const opts = sorted.map(n=>`<option value="${n}">${n}</option>`).join('');
+    aSel.innerHTML = opts; bSel.innerHTML = opts;
+    if(sorted.length>1){ aSel.value = sorted[0]; bSel.value = sorted[1]; }
+    renderCompare();
+  }
+
+  function scopeRowsFor(dim, category){
+    const idx = cube.colOrder;
+    const iDim=idx.indexOf(dim), iIncexc=idx.indexOf('incexc');
+    return cube.rows.filter(r=> cube.dims.incexc[r[iIncexc]]==='include' && cube.dims[dim][r[iDim]]===category);
+  }
+
+  function metricsFor(rows){
+    const idx = cube.colOrder;
+    const iAmount=idx.indexOf('amount'), iCogsbu=idx.indexOf('cogsbu');
+    let total=0, cogs=0, bu=0;
+    rows.forEach(r=>{
+      total += r[iAmount];
+      if(cube.dims.cogsbu[r[iCogsbu]]==='COGS') cogs+=r[iAmount]; else bu+=r[iAmount];
+    });
+    return {total, cogs, bu};
+  }
+
+  function renderCard(containerId, label, m){
+    document.getElementById(containerId).innerHTML = `
+      <div class="cmp-title">${label}</div>
+      <div class="cmp-metric"><span class="lbl">Total Include</span><span class="val">${fmtCurrency(m.total/1000000)} Jt</span></div>
+      <div class="cmp-metric"><span class="lbl">COGS</span><span class="val">${fmtCurrency(m.cogs/1000000)} Jt</span></div>
+      <div class="cmp-metric"><span class="lbl">Beban Usaha</span><span class="val">${fmtCurrency(m.bu/1000000)} Jt</span></div>
+    `;
+  }
+
+  function renderCompare(){
+    const dim = dimSel.value;
+    const catA = aSel.value, catB = bSel.value;
+    if(!catA || !catB) return;
+    const rowsA = scopeRowsFor(dim, catA), rowsB = scopeRowsFor(dim, catB);
+    const mA = metricsFor(rowsA), mB = metricsFor(rowsB);
+    renderCard('cmp-card-a', catA, mA);
+    renderCard('cmp-card-b', catB, mB);
+
+    const idx = cube.colOrder;
+    const iAmount=idx.indexOf('amount'), iCekomut=idx.indexOf('cekomut');
+    function byCekomut(rows){
+      const m = {};
+      rows.forEach(r=>{ const k=cube.dims.cekomut[r[iCekomut]]; m[k]=(m[k]||0)+r[iAmount]; });
+      return m;
+    }
+    const komA = byCekomut(rowsA), komB = byCekomut(rowsB);
+    const allKomut = [...new Set([...Object.keys(komA), ...Object.keys(komB)])];
+    allKomut.sort((k1,k2)=> ((komA[k2]||0)+(komB[k2]||0)) - ((komA[k1]||0)+(komB[k1]||0)));
+    const top = allKomut.slice(0,10);
+
+    if(cmpChart) cmpChart.destroy();
+    const ctx = document.getElementById('cmp-chart').getContext('2d');
+    cmpChart = new Chart(ctx,{type:'bar',
+      data:{labels:top, datasets:[
+        {label:catA, data:top.map(k=>(komA[k]||0)/1000000), backgroundColor:'#114B7A', borderRadius:4},
+        {label:catB, data:top.map(k=>(komB[k]||0)/1000000), backgroundColor:'#B4720A', borderRadius:4},
+      ]},
+      options:{responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{position:'top', align:'end', labels:{boxWidth:10, font:{family:'Inter',size:11.5}}},
+          tooltip:{callbacks:{label:(c)=>`${c.dataset.label}: ${fmtCurrency(c.parsed.y)} Jt USD`}}},
+        scales:{
+          x:{grid:{display:false}, ticks:{font:{family:'Inter',size:10.5}, maxRotation:35, minRotation:35}},
+          y:{grid:{color:'#EDEFF3'}, ticks:{font:{family:'IBM Plex Mono',size:10.5}}},
+        }
+      }
+    });
+  }
+
+  dimSel.onchange = refreshCategoryOptions;
+  aSel.onchange = renderCompare;
+  bSel.onchange = renderCompare;
+  refreshCategoryOptions();
 }
 
 boot();
