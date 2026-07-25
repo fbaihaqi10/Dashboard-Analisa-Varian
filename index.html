@@ -1705,7 +1705,7 @@ function initAboPage(cube, monthIndex){
     const selectedKomut = cekomutSel.value;
     const options = selectedKomut==='ALL'
       ? cube.dims.cesubkomut
-      : (cube.komutToSubkomut[selectedKomut] || []);
+      : ((cube.komutToSubkomut || {})[selectedKomut] || []);
     cesubkomutSel.innerHTML = '<option value="ALL">ALL CE Subkomut</option>' +
       options.map(v=>`<option value="${v}">${v}</option>`).join('');
     cesubkomutSel.value = 'ALL';
