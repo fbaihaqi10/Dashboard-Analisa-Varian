@@ -9,12 +9,61 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#EEF1F5; --surface:#FFFFFF; --ink:#0E1A2B; --muted:#64748B; --border:#DFE4EA;
-    --brand:#0B6E4F; --brand-2:#114B7A; --good:#12805C; --good-bg:#E7F5EF;
-    --bad:#C1392B; --bad-bg:#FBEAE8; --amber:#B4720A; --amber-bg:#FBF1DF;
+    --bg:#F0F4F9; --surface:#FFFFFF; --ink:#0E1A2B; --muted:#64748B; --border:#DFE4EA;
+    --brand:#0E8F63; --brand-2:#1463A3; --good:#0E8F63; --good-bg:#E4F8EF;
+    --bad:#DC3545; --bad-bg:#FDECEE; --amber:#E08E0B; --amber-bg:#FEF3DE;
     --sidebar-bg:#0E1A2B; --sidebar-ink:#C9D4E0; --sidebar-active:#16324F;
     --radius:14px; --sidebar-w:236px; --topbar-h:56px;
   }
+  /* ============ INSIGHT & ALERT PANEL ============ */
+  .insight-alert-wrap{display:grid; grid-template-columns:1.3fr 1fr; gap:16px; margin-bottom:20px;}
+  @media(max-width:980px){.insight-alert-wrap{grid-template-columns:1fr;}}
+  .narrative-card{
+    background:linear-gradient(120deg,#EAF6F0 0%,#E7F1FB 100%); border:1px solid #CFE8DC;
+    border-radius:16px; padding:18px 20px; display:flex; gap:14px; align-items:flex-start;
+  }
+  .narrative-icon{
+    width:38px; height:38px; border-radius:11px; background:linear-gradient(135deg,#0E8F63,#0E8F63);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 3px 10px rgba(14,143,99,.3);
+  }
+  .narrative-icon svg{width:20px;height:20px; stroke:#fff;}
+  .narrative-text{font-size:13.5px; line-height:1.55; color:#0E1A2B;}
+  .narrative-text b{color:#0E8F63;}
+  .alert-card{
+    background:#fff; border:1px solid var(--border); border-radius:16px; padding:16px 18px;
+    box-shadow:0 2px 10px rgba(16,40,70,.04);
+  }
+  .alert-card-title{display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--ink); margin-bottom:10px;}
+  .alert-count-badge{
+    background:linear-gradient(135deg,#DC3545,#B02A37); color:#fff; font-size:11px; font-weight:800;
+    padding:2px 9px; border-radius:20px; box-shadow:0 2px 6px rgba(220,53,69,.35);
+  }
+  .alert-row{display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid #F1F3F7; font-size:12.5px;}
+  .alert-row:last-child{border-bottom:none;}
+  .alert-dot{width:8px; height:8px; border-radius:50%; flex-shrink:0;}
+  .alert-name{flex:1; color:var(--ink); font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .alert-pct{font-family:'IBM Plex Mono'; font-weight:700; font-size:12px;}
+  .alert-empty{font-size:12.5px; color:var(--muted); padding:8px 0;}
+
+  /* Sidebar alert badge on Summary P&L nav item */
+  .sb-item .alert-count{
+    margin-left:auto; background:linear-gradient(135deg,#DC3545,#B02A37); color:#fff;
+    font-size:10px; font-weight:800; padding:1px 6px; border-radius:20px; flex-shrink:0;
+  }
+
+  /* ============ FORECAST ACCURACY ============ */
+  .forecast-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px;}
+  .forecast-card{background:#fff; border:1px solid var(--border); border-radius:12px; padding:14px 16px;}
+  .forecast-name{font-size:11.5px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.03em; margin-bottom:8px;}
+  .forecast-row{display:flex; justify-content:space-between; font-size:12.5px; padding:3px 0;}
+  .forecast-row .lbl{color:var(--muted);}
+  .forecast-row .val{font-family:'IBM Plex Mono'; font-weight:700;}
+  .forecast-accuracy-badge{
+    display:inline-block; margin-top:8px; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700;
+  }
+
+  /* ============ PRODUCT DRILLDOWN ============ */
+  .unit-drilldown{margin-top:16px; display:none;}
   *{box-sizing:border-box;}
   html,body{margin:0;height:100%;}
   body{background:var(--bg); color:var(--ink); font-family:'Inter',sans-serif;}
@@ -205,7 +254,7 @@
   }
   #page-abo .abo-toolbar::before{
     content:''; position:absolute; top:0; left:0; right:0; height:3px;
-    background:linear-gradient(90deg,#114B7A 0%,#0B6E4F 50%,#B4720A 100%);
+    background:linear-gradient(90deg,#1463A3 0%,#0E8F63 50%,#E08E0B 100%);
   }
   #page-abo .abo-filter-group .toggle-label{
     font-size:10px; font-weight:700; letter-spacing:.09em; color:#8A94A6; margin-bottom:2px;
@@ -214,7 +263,7 @@
     background:#F1F4F8; border:1px solid #E3E8EF; box-shadow:inset 0 1px 2px rgba(16,40,70,.04);
   }
   #page-abo .segmented .pill{
-    background:linear-gradient(135deg,#114B7A 0%,#0D3A61 100%);
+    background:linear-gradient(135deg,#1463A3 0%,#0D3A61 100%);
     box-shadow:0 2px 8px rgba(17,75,122,.35);
   }
   #page-abo .segmented button.active{ font-weight:700; }
@@ -226,7 +275,7 @@
   }
   #page-abo select.dropdown:hover{ border-color:#B9C4D4; }
   #page-abo select.dropdown:focus{
-    outline:none; border-color:#114B7A; box-shadow:0 0 0 3px rgba(17,75,122,.14);
+    outline:none; border-color:#1463A3; box-shadow:0 0 0 3px rgba(17,75,122,.14);
   }
 
   #page-abo .kpi-row{gap:16px;}
@@ -238,26 +287,26 @@
   }
   #page-abo .kpi::before{
     content:''; position:absolute; top:0; left:0; bottom:0; width:4px;
-    background:var(--abo-accent,#114B7A);
+    background:var(--abo-accent,#1463A3);
   }
   #page-abo .kpi::after{
     content:''; position:absolute; top:-30px; right:-30px; width:90px; height:90px; border-radius:50%;
-    background:var(--abo-accent,#114B7A); opacity:.05;
+    background:var(--abo-accent,#1463A3); opacity:.05;
   }
   #page-abo .kpi:hover{
     transform:translateY(-4px); box-shadow:0 12px 28px rgba(16,40,70,.12);
   }
-  #page-abo .kpi:nth-child(1){--abo-accent:#114B7A;}
-  #page-abo .kpi:nth-child(2){--abo-accent:#0B6E4F;}
-  #page-abo .kpi:nth-child(3){--abo-accent:#B4720A;}
-  #page-abo .kpi:nth-child(4){--abo-accent:#C1392B;}
+  #page-abo .kpi:nth-child(1){--abo-accent:#1463A3;}
+  #page-abo .kpi:nth-child(2){--abo-accent:#0E8F63;}
+  #page-abo .kpi:nth-child(3){--abo-accent:#E08E0B;}
+  #page-abo .kpi:nth-child(4){--abo-accent:#DC3545;}
   #page-abo .kpi-name{
     display:flex; align-items:center; gap:8px; font-size:11.5px; font-weight:700;
     letter-spacing:.04em; text-transform:uppercase; color:#8A94A6; min-height:auto; margin-bottom:12px;
   }
   #page-abo .kpi-name::before{
     content:''; width:26px; height:26px; border-radius:8px; flex-shrink:0;
-    background:var(--abo-accent,#114B7A); opacity:.12;
+    background:var(--abo-accent,#1463A3); opacity:.12;
     background-image:var(--abo-icon); background-repeat:no-repeat; background-position:center; background-size:15px;
   }
   #page-abo .kpi:nth-child(1) .kpi-name::before{ --abo-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23114B7A' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'/%3E%3C/svg%3E"); }
@@ -299,7 +348,7 @@
   .lb-row:nth-child(3) .lb-rank{background:linear-gradient(135deg,#E3B08A,#B87A4C); color:#4A2C10;}
   .lb-name{flex:1; min-width:0; font-size:13.5px; font-weight:600; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   .lb-bar-track{flex:2; height:8px; border-radius:4px; background:#EEF1F5; overflow:hidden; min-width:80px;}
-  .lb-bar-fill{height:100%; border-radius:4px; background:linear-gradient(90deg,#114B7A,#0B6E4F);}
+  .lb-bar-fill{height:100%; border-radius:4px; background:linear-gradient(90deg,#1463A3,#0E8F63);}
   .lb-value{width:110px; text-align:right; font-family:'IBM Plex Mono'; font-size:12.5px; font-weight:700; flex-shrink:0;}
   .lb-pct{width:56px; text-align:right; font-family:'IBM Plex Mono'; font-size:11.5px; color:var(--muted); flex-shrink:0;}
 
@@ -323,7 +372,7 @@
   <div class="sb-sub">SH Downstream · RKAP vs Realisasi</div>
   <div class="sb-item active" data-page="summary">
     <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span>
-    Summary P&amp;L<span class="badge"></span>
+    Summary P&amp;L<span class="badge"></span><span class="alert-count" id="sb-alert-badge" style="display:none;"></span>
   </div>
   <div class="sb-item" data-page="seasonality">
     <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M7 15l2 2 4-4"/></svg></span>
@@ -390,6 +439,21 @@
           </div>
         </header>
         <div class="caption-line" id="sum-caption"></div>
+
+        <div class="insight-alert-wrap">
+          <div class="narrative-card">
+            <div class="narrative-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.472V16h8v-2.528A6 6 0 0 0 12 3Z"/></svg></div>
+            <div class="narrative-text" id="sum-narrative">Memuat ringkasan otomatis…</div>
+          </div>
+          <div class="alert-card">
+            <div class="alert-card-title">
+              <span>⚠️ Perhatian: Variance Signifikan</span>
+              <span class="alert-count-badge" id="alert-count-badge">0</span>
+            </div>
+            <div id="alert-list"></div>
+          </div>
+        </div>
+
         <div class="kpi-row" id="sum-kpi"></div>
         <div class="main-grid">
           <div class="panel">
@@ -397,8 +461,8 @@
             <div class="panel-sub" id="sum-unitlabel">klik bar untuk menyorot baris di tabel</div>
             <div class="legend-row">
               <span><span class="legend-dot" style="background:#B7C4D6"></span>Basis pembanding</span>
-              <span><span class="legend-dot" style="background:#0B6E4F"></span>Realisasi (favorable)</span>
-              <span><span class="legend-dot" style="background:#C1392B"></span>Realisasi (unfavorable)</span>
+              <span><span class="legend-dot" style="background:#0E8F63"></span>Realisasi (favorable)</span>
+              <span><span class="legend-dot" style="background:#DC3545"></span>Realisasi (unfavorable)</span>
             </div>
             <div class="chart-wrap"><canvas id="sum-chart"></canvas></div>
             <div class="insight" id="sum-insight"></div>
@@ -422,6 +486,13 @@
           </div>
         </div>
         <div class="chip-row" id="sum-chips"></div>
+
+        <div class="panel" style="margin-top:16px;" id="forecast-panel">
+          <div class="panel-title">Akurasi Prognosa — Prognosa Bulan Lalu vs Realisasi Bulan Ini</div>
+          <div class="panel-sub" id="forecast-sub">Mengukur seberapa dekat prognosa yang dibuat periode sebelumnya terhadap realisasi aktual</div>
+          <div class="forecast-grid" id="forecast-grid"></div>
+        </div>
+
         <footer class="page-footer" id="sum-footer"></footer>
       </section>
 
@@ -474,7 +545,7 @@
             <div class="panel-sub">US$ Juta · klik bar untuk menyorot baris di tabel</div>
             <div class="legend-row">
               <span><span class="legend-dot" style="background:#B7C4D6"></span>RKAP Proporsional</span>
-              <span><span class="legend-dot" style="background:#114B7A"></span>Realisasi</span>
+              <span><span class="legend-dot" style="background:#1463A3"></span>Realisasi</span>
             </div>
             <div class="chart-wrap"><canvas id="ub-chart"></canvas></div>
           </div>
@@ -490,6 +561,25 @@
             </table></div>
           </div>
         </div>
+
+        <div class="panel" id="unit-product-panel">
+          <div class="panel-title">Drill-down Produk per Segmen Bisnis</div>
+          <div class="panel-sub">Volume, Revenue, COGS &amp; Margin per produk — dimensi segmen (FRM/FIM/AVIASI/dst) berbeda dari dimensi entitas di atas (OPSEN/PPT/dst)</div>
+          <div class="abo-filter-group" style="margin-bottom:12px;">
+            <div class="toggle-label">Segmen Bisnis</div>
+            <select class="dropdown" id="unit-product-segment"><option value="ALL">Semua Segmen</option></select>
+          </div>
+          <div class="table-scroll" style="max-height:420px;"><table>
+            <thead><tr>
+              <th data-key="material">Produk</th><th data-key="customer">Customer</th>
+              <th data-key="real_volume_kl">Vol. Real (KL)</th>
+              <th data-key="real_revenue">Revenue Real</th><th data-key="real_cogs">COGS Real</th>
+              <th data-key="real_opmargin">Op. Margin Real</th><th data-key="var_pct">Var % Rev</th>
+            </tr></thead>
+            <tbody id="unit-product-tbody"></tbody>
+          </table></div>
+        </div>
+
         <footer class="page-footer">Sumber: sheet <i>Komparasi PL v Realisasi</i>. PIS NC, PIS AP, dan PTK belum memiliki kolom Realisasi terpisah di sheet sumber. "TOTAL SHD" adalah angka konsolidasian setelah eliminasi antar-entitas.</footer>
       </section>
 
@@ -549,11 +639,22 @@
             <div class="panel-title">Dekomposisi Varian Pendapatan per Segmen</div>
             <div class="panel-sub">US$ Juta</div>
             <div class="legend-row">
-              <span><span class="legend-dot" style="background:#114B7A"></span>Varian Volume</span>
-              <span><span class="legend-dot" style="background:#B4720A"></span>Varian Harga</span>
+              <span><span class="legend-dot" style="background:#1463A3"></span>Varian Volume</span>
+              <span><span class="legend-dot" style="background:#E08E0B"></span>Varian Harga</span>
             </div>
             <div class="chart-wrap"><canvas id="var-chart"></canvas></div>
           </div>
+        </div>
+        <div class="panel" style="margin-top:16px;">
+          <div class="panel-title">Waterfall — Jembatan Varian Pendapatan (Total Konsolidasi)</div>
+          <div class="panel-sub">Dari RKAP Proporsional menuju Realisasi: efek volume + efek harga</div>
+          <div class="waterfall-legend">
+            <span><span class="legend-dot" style="background:#B7C4D6;"></span>RKAP Proporsional</span>
+            <span><span class="legend-dot" style="background:#1463A3;"></span>Efek Volume</span>
+            <span><span class="legend-dot" style="background:#E08E0B;"></span>Efek Harga</span>
+            <span><span class="legend-dot" style="background:#0E8F63;"></span>Realisasi</span>
+          </div>
+          <div class="chart-wrap" style="height:340px;"><canvas id="var-waterfall-chart"></canvas></div>
         </div>
         <div class="panel" style="margin-top:16px;">
           <div class="panel-title">Rincian Volume, Harga &amp; Pendapatan per Segmen</div>
@@ -677,9 +778,9 @@
           <div class="panel-title">Waterfall — Komposisi COGS vs Beban Usaha</div>
           <div class="panel-sub">Kontribusi tiap CE Komut terhadap total biaya pada scope filter saat ini</div>
           <div class="waterfall-legend">
-            <span><span class="legend-dot" style="background:#0B6E4F"></span>COGS</span>
-            <span><span class="legend-dot" style="background:#114B7A"></span>Beban Usaha</span>
-            <span><span class="legend-dot" style="background:#B4720A"></span>Total</span>
+            <span><span class="legend-dot" style="background:#0E8F63"></span>COGS</span>
+            <span><span class="legend-dot" style="background:#1463A3"></span>Beban Usaha</span>
+            <span><span class="legend-dot" style="background:#E08E0B"></span>Total</span>
           </div>
           <div class="chart-wrap" style="height:340px;"><canvas id="abo-waterfall-chart"></canvas></div>
         </div>
@@ -974,14 +1075,114 @@ async function switchPeriod(key){
    PAGE 1: SUMMARY P&L
 ============================================================ */
 let summaryChart = null;
+const ALERT_THRESHOLD_PCT = 15; // ambang batas variance dianggap signifikan (%)
+
+async function renderForecastAccuracy(currentMeta){
+  const grid = document.getElementById('forecast-grid');
+  const panel = document.getElementById('forecast-panel');
+  const idx = MANIFEST.periods.findIndex(p=>p.key===currentKey);
+  if(idx <= 0){
+    panel.style.display = 'none';
+    return;
+  }
+  panel.style.display = '';
+  const prevPeriod = MANIFEST.periods[idx-1];
+  const currPeriodLabel = MANIFEST.periods[idx].label;
+  const prevData = await loadPeriod(prevPeriod.key);
+
+  document.getElementById('forecast-panel').querySelector('.panel-title').textContent =
+    'Revisi Prognosa Full Year 2026';
+  document.getElementById('forecast-sub').textContent =
+    `Perubahan proyeksi akhir tahun 2026: Prognosa dibuat saat ${prevPeriod.label} vs Prognosa terbaru saat ${currPeriodLabel} — keduanya estimasi full year, jadi bisa dibandingkan langsung (bukan dengan Realisasi YTD yang beda skala waktu).`;
+
+  const metrics = ['Pendapatan Usaha','Laba/(Rugi) Kotor','EBITDA','Laba/(Rugi) Bersih'];
+
+  grid.innerHTML = metrics.map(name=>{
+    const prevLine = prevData.lines.find(l=>l.name===name);
+    const currLine = (window._currentSummaryLines||[]).find(l=>l.name===name);
+    if(!prevLine || !currLine) return '';
+    const prevForecast = prevLine.d, currForecast = currLine.d;
+    const diffPct = prevForecast!==0 ? (currForecast-prevForecast)/Math.abs(prevForecast)*100 : 0;
+    const stable = Math.abs(diffPct) <= 5;
+    const badgeColor = stable ? '#0E8F63' : (Math.abs(diffPct)<=15 ? '#E08E0B' : '#DC3545');
+    const badgeBg = stable ? '#E4F8EF' : (Math.abs(diffPct)<=15 ? '#FEF3DE' : '#FDECEE');
+    const badgeLabel = stable ? '✓ Stabil' : (Math.abs(diffPct)<=15 ? '△ Direvisi Sedang' : '✗ Direvisi Besar');
+    return `<div class="forecast-card">
+      <div class="forecast-name">${name}</div>
+      <div class="forecast-row"><span class="lbl">Prognosa (${prevPeriod.label})</span><span class="val">${fmtCurrency(prevForecast)} Jt</span></div>
+      <div class="forecast-row"><span class="lbl">Prognosa (${currPeriodLabel})</span><span class="val">${fmtCurrency(currForecast)} Jt</span></div>
+      <div class="forecast-row"><span class="lbl">Revisi</span><span class="val">${diffPct>=0?'+':''}${diffPct.toFixed(1)}%</span></div>
+      <span class="forecast-accuracy-badge" style="background:${badgeBg}; color:${badgeColor};">${badgeLabel}</span>
+    </div>`;
+  }).join('');
+}
+
+async function renderNarrativeAndAlerts(plData, META){
+  const currencyRows = plData.filter(r=>r.unit==='currency' && r.b!==0);
+
+  function variance(row){ return (row.c-row.b)/Math.abs(row.b)*100; }
+  function isFavorable(row,v){ return row.hib ? v>=0 : v<=0; }
+
+  // ---- Narasi otomatis ----
+  const rev = plData.find(r=>r.name==='Pendapatan Usaha');
+  const ebitda = plData.find(r=>r.name==='EBITDA' || r.name==='EBITDA BUMN');
+  const laba = plData.find(r=>r.name && r.name.toUpperCase().includes('LABA/(RUGI) TAHUN BERJALAN')) ||
+               plData.find(r=>r.name==='Laba/(Rugi) Bersih');
+
+  let narrative = 'Ringkasan tidak tersedia untuk periode ini.';
+  if(rev && ebitda && laba){
+    const revV = variance(rev), ebitdaV = variance(ebitda), labaV = variance(laba);
+    const dir = (v)=> v>=0 ? 'tumbuh' : 'turun';
+    narrative = `Pendapatan Usaha <b>${dir(revV)} ${Math.abs(revV).toFixed(1)}%</b> dari RKAP Proporsional ${META.period}, ` +
+      `EBITDA <b>${revV>=0?'sejalan':'terkoreksi'} ${Math.abs(ebitdaV).toFixed(1)}%</b>, ` +
+      `dan Laba Bersih ${dir(labaV)} <b>${Math.abs(labaV).toFixed(1)}%</b> dibanding target periode berjalan.`;
+  }
+  document.getElementById('sum-narrative').innerHTML = narrative;
+
+  // ---- Alert variance signifikan (dengan filter materialitas, hindari noise dari basis kecil) ----
+  const MATERIALITY_FLOOR = 50; // Jt USD -- item di bawah ini diabaikan meski % variance-nya besar
+  const alerts = currencyRows
+    .map(r=>({name:r.name, v:variance(r), fav:isFavorable(r, variance(r)), mat: Math.max(Math.abs(r.b), Math.abs(r.c))}))
+    .filter(a=> Math.abs(a.v) >= ALERT_THRESHOLD_PCT && a.mat >= MATERIALITY_FLOOR)
+    .sort((a,b)=> Math.abs(b.v) - Math.abs(a.v));
+
+  const badge = document.getElementById('alert-count-badge');
+  const sbBadge = document.getElementById('sb-alert-badge');
+  badge.textContent = alerts.length;
+  if(alerts.length===0){
+    badge.style.background = 'linear-gradient(135deg,#0E8F63,#0B6E4F)';
+    sbBadge.style.display = 'none';
+  } else {
+    badge.style.background = '';
+    sbBadge.style.display = '';
+    sbBadge.textContent = alerts.length;
+  }
+
+  const list = document.getElementById('alert-list');
+  if(alerts.length===0){
+    list.innerHTML = '<div class="alert-empty">✅ Tidak ada variance di atas ' + ALERT_THRESHOLD_PCT + '% — semua komponen dalam batas wajar.</div>';
+  } else {
+    list.innerHTML = alerts.slice(0,8).map(a=>`
+      <div class="alert-row">
+        <span class="alert-dot" style="background:${a.fav?'#0E8F63':'#DC3545'};"></span>
+        <span class="alert-name" title="${a.name}">${a.name}</span>
+        <span class="alert-pct" style="color:${a.fav?'#0E8F63':'#DC3545'};">${a.v>=0?'+':''}${a.v.toFixed(1)}%</span>
+      </div>`).join('');
+  }
+}
+
 function initSummaryPage(json){
   const META = json.meta, plData = json.lines, chipData = json.chips;
+  window._currentSummaryLines = plData;
   const basisLabel = META.basisLabels, basisCaption = META.basisCaption;
   let state = {basis:'b', sortKey:'variance', sortDir:'desc', search:'', selected:null};
 
   document.getElementById('sum-subtitle').textContent = `Data per ${META.period}, dalam ${META.unit}. Klik bar, baris tabel, atau kartu KPI untuk saling menyorot.`;
   document.getElementById('sum-unitlabel').textContent = `${META.unit} · klik bar untuk menyorot baris di tabel`;
   document.getElementById('sum-footer').innerHTML = `Sumber: ${META.source}. a=RKAP 2026 (Full Year), b=RKAP Proporsional ${META.period}, c=Realisasi ${META.period}, d=Prognosa 2026.`;
+
+  renderNarrativeAndAlerts(plData, META);
+  renderForecastAccuracy(META);
 
   function variance(row){ const bv=row[state.basis]; if(bv===0) return null; return (row.c-bv)/Math.abs(bv)*100; }
   function isGood(row,v){ if(v===null) return true; return row.hib ? v>=0 : v<=0; }
@@ -995,7 +1196,7 @@ function initSummaryPage(json){
       labels: rows.map(r=>r.name),
       basis: rows.map(r=>r[state.basis]),
       real: rows.map(r=>r.c),
-      colors: rows.map(r=>isGood(r,variance(r))?'#0B6E4F':'#C1392B')
+      colors: rows.map(r=>isGood(r,variance(r))?'#0E8F63':'#DC3545')
     };
     if(summaryChart){ summaryChart.destroy(); }
     const ctx = document.getElementById('sum-chart').getContext('2d');
@@ -1131,10 +1332,10 @@ function initSeasonalityPage(json, monthIndex){
     gradient.addColorStop(1, 'rgba(17,75,122,0.02)');
 
     const pointColors = months.map((m,i)=>{
-      if(i===seasCurrentMonthIndex) return '#C1392B';
-      if(i===maxIdx) return '#0B6E4F';
-      if(i===minIdx) return '#B4720A';
-      return '#114B7A';
+      if(i===seasCurrentMonthIndex) return '#DC3545';
+      if(i===maxIdx) return '#0E8F63';
+      if(i===minIdx) return '#E08E0B';
+      return '#1463A3';
     });
     const pointRadii = months.map((m,i)=> i===seasCurrentMonthIndex ? 8 : (i===maxIdx||i===minIdx ? 6 : 4));
 
@@ -1165,7 +1366,7 @@ function initSeasonalityPage(json, monthIndex){
         boxX = Math.max(chartArea.left+2, Math.min(boxX, chartArea.right-boxW-2));
         if(boxY < chartArea.top) boxY = pt.y + 14;
 
-        ctx.fillStyle = '#C1392B';
+        ctx.fillStyle = '#DC3545';
         ctx.beginPath();
         if(ctx.roundRect) ctx.roundRect(boxX, boxY, boxW, boxH, 6);
         else ctx.rect(boxX, boxY, boxW, boxH);
@@ -1181,7 +1382,7 @@ function initSeasonalityPage(json, monthIndex){
     seasChart = new Chart(ctx,{
       type:'line',
       data:{labels:months, datasets:[{
-        label:name, data:values, borderColor:'#114B7A', backgroundColor:gradient,
+        label:name, data:values, borderColor:'#1463A3', backgroundColor:gradient,
         fill:true, tension:.4, borderWidth:3,
         pointRadius:pointRadii, pointBackgroundColor:pointColors,
         pointBorderColor:'#fff', pointBorderWidth:2, pointHoverRadius:9, pointHoverBorderWidth:2.5,
@@ -1229,6 +1430,46 @@ function updateSeasonalityMarker(monthIndex){
    PAGE 3: PER UNIT BISNIS
 ============================================================ */
 let ubChart = null;
+const productCache = {};
+async function loadProductData(periodKey){
+  if(productCache[periodKey]) return productCache[periodKey];
+  const data = await loadJSON(`data/periods/products-${periodKey}.json`);
+  productCache[periodKey] = data;
+  return data;
+}
+
+async function initProductDrilldown(){
+  const segSel = document.getElementById('unit-product-segment');
+  let productData;
+  try{
+    productData = await loadProductData(currentKey);
+  }catch(err){
+    document.getElementById('unit-product-panel').style.display='none';
+    return;
+  }
+  document.getElementById('unit-product-panel').style.display='';
+
+  const segments = [...new Set(productData.products.map(p=>p.unit))].sort();
+  segSel.innerHTML = '<option value="ALL">Semua Segmen</option>' + segments.map(s=>`<option value="${s}">${s}</option>`).join('');
+
+  function render(){
+    const seg = segSel.value;
+    let rows = seg==='ALL' ? productData.products : productData.products.filter(p=>p.unit===seg);
+    rows = rows.slice().sort((a,b)=>b.real_revenue - a.real_revenue);
+    document.getElementById('unit-product-tbody').innerHTML = rows.map(p=>{
+      const varPct = p.rkap_ytd_revenue!==0 ? (p.real_revenue-p.rkap_ytd_revenue)/Math.abs(p.rkap_ytd_revenue)*100 : null;
+      const good = varPct===null ? true : varPct>=0;
+      return `<tr><td>${p.material}</td><td>${p.customer}</td>
+        <td>${fmtInt(p.real_volume_kl)}</td>
+        <td>${fmtCurrency(p.real_revenue)}</td><td>${fmtCurrency(p.real_cogs)}</td>
+        <td>${fmtCurrency(p.real_opmargin)}</td>
+        <td class="${varPct===null?'':(good?'var-good':'var-bad')}">${varPct===null?'—':(varPct>=0?'+':'')+varPct.toFixed(1)+'%'}</td></tr>`;
+    }).join('');
+  }
+  segSel.onchange = render;
+  render();
+}
+
 function initUnitBisnisPage(json){
   const units = json.units;
   const metrics = ['Pendapatan Usaha','BPP','Laba Kotor','Beban Usaha','Laba Usaha','Laba Bersih','EBITDA','EBITDA Margin','BOPO'];
@@ -1251,7 +1492,7 @@ function initUnitBisnisPage(json){
     const ctx = document.getElementById('ub-chart').getContext('2d');
     ubChart = new Chart(ctx,{type:'bar',data:{labels:rows.map(r=>r.unit),datasets:[
       {label:'RKAP Proporsional', data:rows.map(r=>r[state.metric].rkap), backgroundColor:'#B7C4D6', borderRadius:4, barThickness:9},
-      {label:'Realisasi', data:rows.map(r=>r[state.metric].real), backgroundColor:'#114B7A', borderRadius:4, barThickness:9}
+      {label:'Realisasi', data:rows.map(r=>r[state.metric].real), backgroundColor:'#1463A3', borderRadius:4, barThickness:9}
     ]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
       onClick:(evt,els)=>{ if(els.length) toggleSelect(rows[els[0].index].unit); },
       plugins:{legend:{display:false}, tooltip:{callbacks:{label:(c)=>c.dataset.label+': '+fmtM(c.parsed.x)}}},
@@ -1295,6 +1536,7 @@ function initUnitBisnisPage(json){
   };
   const searchInput = document.getElementById('ub-search');
   const freshSearch = searchInput.cloneNode(true);
+
   searchInput.parentNode.replaceChild(freshSearch, searchInput);
   freshSearch.addEventListener('input',e=>{ state.search=e.target.value; buildOrUpdateChart(); renderTable(); });
 
@@ -1305,6 +1547,7 @@ function initUnitBisnisPage(json){
   setupSortableTable('#page-unitbisnis thead', renderTable, state);
 
   buildOrUpdateChart(); renderTable();
+  initProductDrilldown();
 }
 
 /* ============================================================
@@ -1314,7 +1557,7 @@ let cogsDonut=null, cogsBar=null;
 function initCogsPage(json){
   const cats = json.cogs.categories, total = json.cogs.total;
   let state = {basis:'realisasi'};
-  const palette = ['#114B7A','#0B6E4F','#B4720A','#8E44AD','#C1392B','#1ABC9C','#7F8C8D','#2C82C9','#D68910','#5D6D7E','#16A085','#A93226'];
+  const palette = ['#1463A3','#0E8F63','#E08E0B','#8E44AD','#DC3545','#1ABC9C','#7F8C8D','#2C82C9','#D68910','#5D6D7E','#16A085','#A93226'];
 
   function buildOrUpdateDonut(){
     const rows = cats.filter(c=>c[state.basis]>0);
@@ -1331,7 +1574,7 @@ function initCogsPage(json){
     const rows = cats.filter(c=> c.rkap_prop>0 || c.realisasi>0);
     cogsBar = new Chart(ctx,{type:'bar',data:{labels:rows.map(c=>c.name),datasets:[
       {label:'RKAP Proporsional', data:rows.map(c=>c.rkap_prop), backgroundColor:'#B7C4D6', borderRadius:4, barThickness:9},
-      {label:'Realisasi', data:rows.map(c=>c.realisasi), backgroundColor:'#0B6E4F', borderRadius:4, barThickness:9}
+      {label:'Realisasi', data:rows.map(c=>c.realisasi), backgroundColor:'#0E8F63', borderRadius:4, barThickness:9}
     ]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
       plugins:{legend:{position:'top',labels:{font:{size:10.5,family:'Inter'},boxWidth:10}}, tooltip:{callbacks:{label:(c)=>c.dataset.label+': '+fmtCurrency(c.parsed.x)+' Jt'}}},
       scales:{x:{grid:{color:'#EDEFF3'},ticks:{font:{family:'IBM Plex Mono',size:10}}}, y:{grid:{display:false},ticks:{font:{family:'Inter',size:10.5}}}}
@@ -1355,7 +1598,7 @@ function initCogsPage(json){
 /* ============================================================
    PAGE 5: VARIANCE ANALYSIS
 ============================================================ */
-let varChart=null;
+let varChart=null, varWaterfallChart=null;
 function initVariancePage(json){
   const segs = json.variance.segments.filter(s=>s.name!=='Total');
   const totalRow = json.variance.segments.find(s=>s.name==='Total');
@@ -1363,8 +1606,8 @@ function initVariancePage(json){
   if(varChart) varChart.destroy();
   const ctx = document.getElementById('var-chart').getContext('2d');
   varChart = new Chart(ctx,{type:'bar',data:{labels:segs.map(s=>s.name),datasets:[
-    {label:'Varian Volume', data:segs.map(s=>s.qty_variance), backgroundColor:'#114B7A', borderRadius:4, barThickness:16},
-    {label:'Varian Harga', data:segs.map(s=>s.price_variance), backgroundColor:'#B4720A', borderRadius:4, barThickness:16}
+    {label:'Varian Volume', data:segs.map(s=>s.qty_variance), backgroundColor:'#1463A3', borderRadius:4, barThickness:16},
+    {label:'Varian Harga', data:segs.map(s=>s.price_variance), backgroundColor:'#E08E0B', borderRadius:4, barThickness:16}
   ]},options:{responsive:true,maintainAspectRatio:false,
     plugins:{legend:{display:false}, tooltip:{callbacks:{label:(c)=>c.dataset.label+': '+fmtCurrency(c.parsed.y)+' Jt'}}},
     scales:{
@@ -1381,6 +1624,38 @@ function initVariancePage(json){
       <td>${fmtCurrency(s.rkap_revenue)}</td><td>${fmtCurrency(s.real_revenue)}</td>
       <td class="${s.pct_rev>=1?'var-good':'var-bad'}">${s.pct_rev!==null?(s.pct_rev*100).toFixed(1)+'%':'—'}</td></tr>`;
   }).join('');
+
+  // ---- Waterfall bridge: RKAP Proporsional -> Efek Volume -> Efek Harga -> Realisasi ----
+  const base = totalRow ? totalRow.rkap_revenue : segs.reduce((s,x)=>s+x.rkap_revenue,0);
+  const qtyEff = totalRow ? totalRow.qty_variance : segs.reduce((s,x)=>s+x.qty_variance,0);
+  const priceEff = totalRow ? totalRow.price_variance : segs.reduce((s,x)=>s+x.price_variance,0);
+  const finalVal = base + qtyEff + priceEff;
+
+  const wfLabels = ['RKAP Proporsional', 'Efek Volume', 'Efek Harga', 'Realisasi'];
+  const wfData = [
+    [0, base],
+    qtyEff>=0 ? [base, base+qtyEff] : [base+qtyEff, base],
+    priceEff>=0 ? [base+qtyEff, base+qtyEff+priceEff] : [base+qtyEff+priceEff, base+qtyEff],
+    [0, finalVal],
+  ];
+  const wfColors = ['#B7C4D6', '#1463A3', '#E08E0B', '#0E8F63'];
+
+  if(varWaterfallChart) varWaterfallChart.destroy();
+  const wfCtx = document.getElementById('var-waterfall-chart').getContext('2d');
+  varWaterfallChart = new Chart(wfCtx,{type:'bar',
+    data:{labels:wfLabels, datasets:[{data:wfData, backgroundColor:wfColors, borderRadius:5, barThickness:52}]},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:(c)=>{
+          const d = c.raw; const delta = d[1]-d[0];
+          return (c.dataIndex===0||c.dataIndex===3) ? `${fmtCurrency(d[1])} Jt` : `${delta>=0?'+':''}${fmtCurrency(delta)} Jt`;
+        }}}},
+      scales:{
+        x:{grid:{display:false}, ticks:{font:{family:'Inter',size:12,weight:'600'}}},
+        y:{grid:{color:'#EDEFF3'}, ticks:{font:{family:'IBM Plex Mono',size:10.5}}}
+      }
+    }
+  });
 }
 
 /* ============================================================
@@ -1530,7 +1805,7 @@ function renderAboBarChart(cube){
   if(aboBarChart) aboBarChart.destroy();
   const ctx = canvas.getContext('2d');
   aboBarChart = new Chart(ctx,{type:'bar',
-    data:{labels, datasets:[{data:values, backgroundColor:'#114B7A', borderRadius:4, barThickness:16, hoverBackgroundColor:'#0B6E4F'}]},
+    data:{labels, datasets:[{data:values, backgroundColor:'#1463A3', borderRadius:4, barThickness:16, hoverBackgroundColor:'#0E8F63'}]},
     options:{
       indexAxis:'y', responsive:true, maintainAspectRatio:false,
       plugins:{legend:{display:false}, tooltip:{callbacks:{label:(c)=>fmtCurrency(c.parsed.x)+' Jt USD'}}},
@@ -1596,12 +1871,12 @@ function renderAboWaterfall(cube){
     const val = it.cogs + it.bu;
     data.push([running, running+val]);
     labels.push(it.name);
-    colors.push(it.cogs > it.bu ? '#0B6E4F' : '#114B7A');
+    colors.push(it.cogs > it.bu ? '#0E8F63' : '#1463A3');
     running += val;
   });
   labels.push('Total');
   data.push([0, running]);
-  colors.push('#B4720A');
+  colors.push('#E08E0B');
 
   if(aboWaterfallChart) aboWaterfallChart.destroy();
   const ctx = document.getElementById('abo-waterfall-chart').getContext('2d');
@@ -1825,8 +2100,8 @@ function initAboTrend(cube){
     const ctx = document.getElementById('trend-chart').getContext('2d');
     trendChart = new Chart(ctx,{type:'bar',
       data:{labels, datasets:[
-        {label:'COGS', data:monthsAvail.map(m=>cogsByMonth[m]/1000000), backgroundColor:'#0B6E4F', borderRadius:4, stack:'s'},
-        {label:'Beban Usaha', data:monthsAvail.map(m=>buByMonth[m]/1000000), backgroundColor:'#114B7A', borderRadius:4, stack:'s'},
+        {label:'COGS', data:monthsAvail.map(m=>cogsByMonth[m]/1000000), backgroundColor:'#0E8F63', borderRadius:4, stack:'s'},
+        {label:'Beban Usaha', data:monthsAvail.map(m=>buByMonth[m]/1000000), backgroundColor:'#1463A3', borderRadius:4, stack:'s'},
       ]},
       options:{responsive:true, maintainAspectRatio:false,
         plugins:{legend:{position:'top', align:'end', labels:{boxWidth:10, font:{family:'Inter',size:11.5}}},
@@ -1968,8 +2243,8 @@ function initAboCompare(cube){
     const ctx = document.getElementById('cmp-chart').getContext('2d');
     cmpChart = new Chart(ctx,{type:'bar',
       data:{labels:top, datasets:[
-        {label:catA, data:top.map(k=>(komA[k]||0)/1000000), backgroundColor:'#114B7A', borderRadius:4},
-        {label:catB, data:top.map(k=>(komB[k]||0)/1000000), backgroundColor:'#B4720A', borderRadius:4},
+        {label:catA, data:top.map(k=>(komA[k]||0)/1000000), backgroundColor:'#1463A3', borderRadius:4},
+        {label:catB, data:top.map(k=>(komB[k]||0)/1000000), backgroundColor:'#E08E0B', borderRadius:4},
       ]},
       options:{responsive:true, maintainAspectRatio:false,
         plugins:{legend:{position:'top', align:'end', labels:{boxWidth:10, font:{family:'Inter',size:11.5}}},
