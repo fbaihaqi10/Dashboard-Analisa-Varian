@@ -45,6 +45,17 @@
   .alert-pct{font-family:'IBM Plex Mono'; font-weight:700; font-size:11px;}
   .alert-empty{font-size:12px; color:var(--muted); padding:6px 0;}
   .alert-more{font-size:11px; color:var(--muted); padding-top:6px; font-style:italic;}
+  .alert-toggle-btn{
+    width:100%; text-align:left; background:none; border:none; padding:7px 0 2px;
+    font-family:'Inter'; font-size:11.5px; font-weight:600; color:var(--brand-2); cursor:pointer;
+  }
+  .alert-toggle-btn:hover{text-decoration:underline;}
+  .insight-summary-box{
+    background:#FDF8ED; border:1px solid #F0DFAE; border-left:4px solid #E08E0B; border-radius:10px;
+    padding:11px 16px; font-size:12.5px; line-height:1.6; color:#5C4A1E; margin-bottom:20px;
+  }
+  .insight-summary-box:empty{display:none; margin-bottom:0;}
+  .insight-summary-box b{color:#8A6D0B;}
 
   /* Sidebar alert badge on Summary P&L nav item */
   .sb-item .alert-count{
@@ -454,6 +465,8 @@
             <div class="alert-list-scroll" id="alert-list"></div>
           </div>
         </div>
+
+        <div class="insight-summary-box" id="sum-alert-insight"></div>
 
         <div class="kpi-row" id="sum-kpi"></div>
         <div class="main-grid">
@@ -1159,16 +1172,42 @@ async function renderNarrativeAndAlerts(plData, META){
     sbBadge.textContent = alerts.length;
   }
 
-  const list = document.getElementById('alert-list');
+  // ---- Kalimat insight terstruktur, relate ke daftar alert ----
+  const insightEl = document.getElementById('sum-alert-insight');
   if(alerts.length===0){
-    list.innerHTML = '<div class="alert-empty">✅ Tidak ada variance di atas ' + ALERT_THRESHOLD_PCT + '% — semua komponen dalam batas wajar.</div>';
+    insightEl.innerHTML = '';
   } else {
-    list.innerHTML = alerts.slice(0,5).map(a=>`
+    const favCount = alerts.filter(a=>a.fav).length;
+    const unfavCount = alerts.length - favCount;
+    const worst = alerts.filter(a=>!a.fav).sort((a,b)=>Math.abs(b.v)-Math.abs(a.v))[0];
+    const best = alerts.filter(a=>a.fav).sort((a,b)=>Math.abs(b.v)-Math.abs(a.v))[0];
+    let parts = [];
+    parts.push(`Dari <b>${alerts.length} komponen</b> dengan variance ≥${ALERT_THRESHOLD_PCT}% terhadap RKAP Proporsional, <b>${favCount} bersifat favorable</b> dan <b>${unfavCount} unfavorable</b>.`);
+    if(best) parts.push(`Pencapaian terbaik: <b>${best.name}</b> (${best.v>=0?'+':''}${best.v.toFixed(1)}%).`);
+    if(worst) parts.push(`Yang paling perlu perhatian: <b>${worst.name}</b> (${worst.v>=0?'+':''}${worst.v.toFixed(1)}%).`);
+    insightEl.innerHTML = parts.join(' ');
+  }
+
+  const list = document.getElementById('alert-list');
+  const renderAlertRows = (items)=> items.map(a=>`
       <div class="alert-row">
         <span class="alert-dot" style="background:${a.fav?'#0E8F63':'#DC3545'};"></span>
         <span class="alert-name" title="${a.name}">${a.name}</span>
         <span class="alert-pct" style="color:${a.fav?'#0E8F63':'#DC3545'};">${a.v>=0?'+':''}${a.v.toFixed(1)}%</span>
-      </div>`).join('') + (alerts.length>5 ? `<div class="alert-more">+${alerts.length-5} lainnya</div>` : '');
+      </div>`).join('');
+
+  if(alerts.length===0){
+    list.innerHTML = '<div class="alert-empty">✅ Tidak ada variance di atas ' + ALERT_THRESHOLD_PCT + '% — semua komponen dalam batas wajar.</div>';
+  } else {
+    let expanded = false;
+    function draw(){
+      const visible = expanded ? alerts : alerts.slice(0,5);
+      list.innerHTML = renderAlertRows(visible) +
+        (alerts.length>5 ? `<button class="alert-toggle-btn" id="alert-toggle-btn">${expanded ? '▲ Tampilkan lebih sedikit' : `▼ +${alerts.length-5} lainnya`}</button>` : '');
+      const btn = document.getElementById('alert-toggle-btn');
+      if(btn) btn.onclick = ()=>{ expanded = !expanded; draw(); };
+    }
+    draw();
   }
 }
 
