@@ -537,7 +537,7 @@
             <tbody id="seas-tbody"></tbody>
           </table></div>
         </div>
-        <footer class="page-footer">Sumber: sheet <i>Seasonality PL-All</i> (blok segmen OPSEN, kolom Jan–Des). Subsidiari (PPT, PIMD, dll.) memiliki pola musiman masing-masing yang tidak dikonsolidasikan bulanan di sheet ini.</footer>
+        <footer class="page-footer"></footer>
       </section>
 
       <!-- ============ PAGE 3: PER UNIT BISNIS ============ -->
@@ -594,7 +594,7 @@
           </table></div>
         </div>
 
-        <footer class="page-footer">Sumber: sheet <i>Komparasi PL v Realisasi</i>. PIS NC, PIS AP, dan PTK belum memiliki kolom Realisasi terpisah di sheet sumber. "TOTAL SHD" adalah angka konsolidasian setelah eliminasi antar-entitas.</footer>
+        <footer class="page-footer"></footer>
       </section>
 
       <!-- ============ PAGE 4: KOMPOSISI COGS ============ -->
@@ -636,7 +636,7 @@
             <tbody id="cogs-tbody"></tbody>
           </table></div>
         </div>
-        <footer class="page-footer" id="cogs-footer">Sumber: sheet <i>Komposisi COGS</i>.</footer>
+        <footer class="page-footer" id="cogs-footer"></footer>
       </section>
 
       <!-- ============ PAGE 5: VARIANCE ANALYSIS ============ -->
@@ -683,7 +683,7 @@
             <tbody id="var-tbody"></tbody>
           </table></div>
         </div>
-        <footer class="page-footer">Sumber: sheet <i>Variance PL per UB</i>. Varian Volume = dampak perubahan volume pada harga RKAP; Varian Harga = dampak perubahan harga pada volume Realisasi.</footer>
+        <footer class="page-footer"></footer>
       </section>
 
       <!-- ============ PAGE: ANGGARAN BIAYA OPERASIONAL (ABO) ============ -->
@@ -1217,9 +1217,9 @@ function initSummaryPage(json){
   const basisLabel = META.basisLabels, basisCaption = META.basisCaption;
   let state = {basis:'b', sortKey:'variance', sortDir:'desc', search:'', selected:null};
 
-  document.getElementById('sum-subtitle').textContent = `Data per ${META.period}, dalam ${META.unit}. Klik bar, baris tabel, atau kartu KPI untuk saling menyorot.`;
+  document.getElementById('sum-subtitle').textContent = `Data per ${META.period} (${META.unit}). Klik bar, baris tabel, atau kartu KPI untuk melihat data terkait secara interaktif.`;
   document.getElementById('sum-unitlabel').textContent = `${META.unit} · klik bar untuk menyorot baris di tabel`;
-  document.getElementById('sum-footer').innerHTML = `Sumber: ${META.source}. a=RKAP 2026 (Full Year), b=RKAP Proporsional ${META.period}, c=Realisasi ${META.period}, d=Prognosa 2026.`;
+  document.getElementById('sum-footer').innerHTML = `a=RKAP 2026 (Full Year), b=RKAP Proporsional ${META.period}, c=Realisasi ${META.period}, d=Prognosa 2026.`;
 
   renderNarrativeAndAlerts(plData, META);
   renderForecastAccuracy(META);
@@ -1983,7 +1983,7 @@ function renderAboPage(){
   renderAboWaterfall(ABO_CUBE);
   renderAboChips(ABO_CUBE);
   document.getElementById('abo-footer').innerHTML =
-    `Sumber: ${ABO_CUBE.meta.source}. Data Ytd s.d. bulan ke-${aboState.bulanCutoff} (2026), digabung dari FBL3N + EXTRACOMP. Nilai dalam Juta USD.`;
+    `Data Ytd s.d. bulan ke-${aboState.bulanCutoff} (2026), digabung dari FBL3N + EXTRACOMP. Nilai dalam Juta USD.`;
 }
 
 function initAboPage(cube, monthIndex){
