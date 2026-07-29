@@ -537,7 +537,7 @@
             <tbody id="seas-tbody"></tbody>
           </table></div>
         </div>
-        <footer class="page-footer"></footer>
+        <footer class="page-footer">Financial Planning &amp; Forecasting<br>Subholding Downstream<br>PT Pertamina Patra Niaga</footer>
       </section>
 
       <!-- ============ PAGE 3: PER UNIT BISNIS ============ -->
@@ -594,7 +594,7 @@
           </table></div>
         </div>
 
-        <footer class="page-footer"></footer>
+        <footer class="page-footer">Financial Planning &amp; Forecasting<br>Subholding Downstream<br>PT Pertamina Patra Niaga</footer>
       </section>
 
       <!-- ============ PAGE 4: KOMPOSISI COGS ============ -->
@@ -636,7 +636,7 @@
             <tbody id="cogs-tbody"></tbody>
           </table></div>
         </div>
-        <footer class="page-footer" id="cogs-footer"></footer>
+        <footer class="page-footer" id="cogs-footer">Financial Planning &amp; Forecasting<br>Subholding Downstream<br>PT Pertamina Patra Niaga</footer>
       </section>
 
       <!-- ============ PAGE 5: VARIANCE ANALYSIS ============ -->
@@ -683,7 +683,7 @@
             <tbody id="var-tbody"></tbody>
           </table></div>
         </div>
-        <footer class="page-footer"></footer>
+        <footer class="page-footer">Financial Planning &amp; Forecasting<br>Subholding Downstream<br>PT Pertamina Patra Niaga</footer>
       </section>
 
       <!-- ============ PAGE: ANGGARAN BIAYA OPERASIONAL (ABO) ============ -->
@@ -1219,7 +1219,7 @@ function initSummaryPage(json){
 
   document.getElementById('sum-subtitle').textContent = `Data per ${META.period} (${META.unit}). Klik bar, baris tabel, atau kartu KPI untuk melihat data terkait secara interaktif.`;
   document.getElementById('sum-unitlabel').textContent = `${META.unit} · klik bar untuk menyorot baris di tabel`;
-  document.getElementById('sum-footer').innerHTML = `a=RKAP 2026 (Full Year), b=RKAP Proporsional ${META.period}, c=Realisasi ${META.period}, d=Prognosa 2026.`;
+  document.getElementById('sum-footer').innerHTML = `Financial Planning &amp; Forecasting<br>Subholding Downstream<br>PT Pertamina Patra Niaga`;
 
   renderNarrativeAndAlerts(plData, META);
   renderForecastAccuracy(META);
@@ -1983,7 +1983,7 @@ function renderAboPage(){
   renderAboWaterfall(ABO_CUBE);
   renderAboChips(ABO_CUBE);
   document.getElementById('abo-footer').innerHTML =
-    `Data Ytd s.d. bulan ke-${aboState.bulanCutoff} (2026), digabung dari FBL3N + EXTRACOMP. Nilai dalam Juta USD.`;
+    `Financial Planning &amp; Forecasting<br>Subholding Downstream<br>PT Pertamina Patra Niaga`;
 }
 
 function initAboPage(cube, monthIndex){
