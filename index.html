@@ -298,21 +298,19 @@
 
   .kpi-row{gap:16px;}
   .kpi{
-    position:relative; background:linear-gradient(160deg,#FFFFFF 0%,#FBFCFE 100%);
-    border:1px solid #E7EBF1; border-radius:16px; padding:20px 20px 18px;
-    box-shadow:0 2px 10px rgba(16,40,70,.05); overflow:hidden;
+    position:relative; background:linear-gradient(160deg, color-mix(in srgb, var(--kpi-accent,#1463A3) 9%, #FFFFFF) 0%, #FFFFFF 65%);
+    border:1px solid color-mix(in srgb, var(--kpi-accent,#1463A3) 25%, #E7EBF1);
+    border-top:5px solid var(--kpi-accent,#1463A3);
+    border-radius:16px; padding:22px 22px 20px;
+    box-shadow:0 4px 16px rgba(16,40,70,.08); overflow:hidden;
     transition:transform .22s cubic-bezier(.4,0,.2,1), box-shadow .22s ease;
   }
-  .kpi::before{
-    content:''; position:absolute; top:0; left:0; bottom:0; width:4px;
-    background:var(--kpi-accent,#1463A3);
-  }
   .kpi::after{
-    content:''; position:absolute; top:-30px; right:-30px; width:90px; height:90px; border-radius:50%;
-    background:var(--kpi-accent,#1463A3); opacity:.05;
+    content:''; position:absolute; top:-34px; right:-34px; width:100px; height:100px; border-radius:50%;
+    background:var(--kpi-accent,#1463A3); opacity:.10;
   }
   .kpi:hover{
-    transform:translateY(-4px); box-shadow:0 12px 28px rgba(16,40,70,.12);
+    transform:translateY(-5px); box-shadow:0 16px 32px rgba(16,40,70,.16);
   }
   /* Rotasi warna aksen 5-siklus -- berlaku untuk berapa pun jumlah kartu KPI di halaman manapun */
   .kpi:nth-child(5n+1){--kpi-accent:#1463A3;}
@@ -321,12 +319,17 @@
   .kpi:nth-child(5n+4){--kpi-accent:#8B5CF6;}
   .kpi:nth-child(5n+5){--kpi-accent:#DC3545;}
   .kpi-name{
-    display:flex; align-items:center; gap:8px; font-size:11.5px; font-weight:700;
-    letter-spacing:.04em; text-transform:uppercase; color:#8A94A6; min-height:auto; margin-bottom:12px;
+    display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:800;
+    letter-spacing:.04em; text-transform:uppercase; color:var(--kpi-accent,#1463A3); min-height:auto; margin-bottom:13px;
   }
   .kpi-value{
-    font-family:'IBM Plex Mono',monospace; font-size:24px; font-weight:700; letter-spacing:-.01em;
+    font-family:'IBM Plex Mono',monospace; font-size:28px; font-weight:800; letter-spacing:-.01em;
     color:var(--ink); position:relative; z-index:1;
+  }
+
+  /* Panel title: aksen warna lebih tegas */
+  .panel-title{
+    border-left:4px solid #1463A3; padding-left:10px;
   }
 
   /* ============ ABO-SPESIFIK: ikon per kartu (hanya 4 KPI ABO, tetap scoped) ============ */
